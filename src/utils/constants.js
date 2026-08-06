@@ -18,6 +18,7 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
   VERIFY_EMAIL: '/verify-email',
+  DASHBOARD: '/dashboard',
   PROFILE: '/profile',
   CHANGE_PASSWORD: '/change-password',
 };
