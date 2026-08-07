@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
-import AppLayout from "../layouts/AppLayout";
+import AppLayout from "@/layouts/AppLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
 import GuestRoute from "../components/GuestRoute";
 import LandingPage from "@/pages/onboarding/LandingPage";
@@ -10,7 +10,6 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 import VerifyEmail from "../pages/auth/VerifyEmail";
 import Dashboard from "../pages/dashboard/Dashboard";
-import Profile from "../pages/profile/Profile";
 import ChangePassword from "../pages/profile/ChangePassword";
 import { ROUTES } from "../utils/constants";
 import NullLayout from "@/layouts/NullLayout";
@@ -58,7 +57,6 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path={ROUTES.PROFILE} element={<Profile />} />
         <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePassword />} />
       </Route>
       <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />

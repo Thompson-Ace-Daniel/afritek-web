@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useAuth } from '../../hooks/useAuth';
-import { loginSchema } from '../../utils/validation';
-import { ROUTES } from '../../utils/constants';
-import Input from '../../components/Input';
-import PasswordInput from '../../components/PasswordInput';
-import Button from '../../components/Button';
-import ErrorAlert from '../../components/ErrorAlert';
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Mail } from "lucide-react";
+import toast from "react-hot-toast";
+import { useAuth } from "../../hooks/useAuth";
+import { loginSchema } from "../../utils/validation";
+import { ROUTES } from "../../utils/constants";
+import Input from "../../components/Input";
+import PasswordInput from "../../components/PasswordInput";
+import Button from "../../components/Button";
+import ErrorAlert from "../../components/ErrorAlert";
 
 export default function Login() {
   const { login } = useAuth();
@@ -26,8 +26,8 @@ export default function Login() {
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
       remember: true,
     },
   });
@@ -41,12 +41,12 @@ export default function Login() {
         password: data.password,
         remember: data.remember,
       });
-      toast.success('Welcome back!');
-      const redirectTo = location.state?.from || ROUTES.PROFILE;
+      toast.success("Welcome back!");
+      const redirectTo = location.state?.from || ROUTES.DASHBOARD;
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setServerError({
-        message: err.message || 'Login failed. Please try again.',
+        message: err.message || "Login failed. Please try again.",
         errors: err.errors,
       });
     } finally {
@@ -81,7 +81,7 @@ export default function Login() {
           required
           leftIcon={<Mail className="h-4 w-4" />}
           error={errors.email?.message}
-          {...register('email')}
+          {...register("email")}
         />
 
         <PasswordInput
@@ -89,21 +89,21 @@ export default function Login() {
           autoComplete="current-password"
           required
           error={errors.password?.message}
-          {...register('password')}
+          {...register("password")}
         />
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded border-slate-600 bg-surface-900 text-brand-600 focus:ring-brand-500 focus:ring-offset-surface-950"
-              {...register('remember')}
+              className="h-4 w-4 rounded border-slate-600 bg-surface-900 text-amber-600 focus:ring-amber-500 focus:ring-offset-surface-950"
+              {...register("remember")}
             />
             Remember me
           </label>
           <Link
             to={ROUTES.FORGOT_PASSWORD}
-            className="text-sm font-medium text-brand-400 hover:text-brand-300 focus:outline-none focus-visible:underline"
+            className="text-sm font-medium text-amber-400 hover:text-amber-300 focus:outline-none focus-visible:underline"
           >
             Forgot password?
           </Link>
@@ -115,10 +115,10 @@ export default function Login() {
       </form>
 
       <p className="text-center text-sm text-slate-400">
-        Don&apos;t have an account?{' '}
+        Don&apos;t have an account?{" "}
         <Link
           to={ROUTES.REGISTER}
-          className="font-medium text-brand-400 hover:text-brand-300 focus:outline-none focus-visible:underline"
+          className="font-medium text-amber-400 hover:text-amber-300 focus:outline-none focus-visible:underline"
         >
           Create one
         </Link>

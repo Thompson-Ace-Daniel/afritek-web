@@ -1,17 +1,18 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { User, Phone, Mail, Shield, BadgeCheck } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useAuth } from '../../hooks/useAuth';
-import { updateProfileSchema } from '../../utils/validation';
-import Input from '../../components/Input';
-import Button from '../../components/Button';
-import ErrorAlert from '../../components/ErrorAlert';
-import SuccessAlert from '../../components/SuccessAlert';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { User, Phone, Mail, Shield, BadgeCheck } from "lucide-react";
+import toast from "react-hot-toast";
+import { useAuth } from "../../hooks/useAuth";
+import { updateProfileSchema } from "../../utils/validation";
+import Input from "../../components/Input";
+import Button from "../../components/Button";
+import ErrorAlert from "../../components/ErrorAlert";
+import SuccessAlert from "../../components/SuccessAlert";
 
 export default function Profile() {
-  const { user, updateProfile, deleteAccount, sendEmailVerification } = useAuth();
+  const { user, updateProfile, deleteAccount, sendEmailVerification } =
+    useAuth();
   const [serverError, setServerError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -25,8 +26,8 @@ export default function Profile() {
   } = useForm({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
-      fullName: user?.fullName || '',
-      phone: user?.phone || '',
+      fullName: user?.fullName || "",
+      phone: user?.phone || "",
     },
   });
 
@@ -39,11 +40,11 @@ export default function Profile() {
         fullName: data.fullName.trim(),
         phone: data.phone?.trim() || null,
       });
-      setSuccessMessage('Profile updated successfully.');
-      toast.success('Profile updated');
+      setSuccessMessage("Profile updated successfully.");
+      toast.success("Profile updated");
     } catch (err) {
       setServerError({
-        message: err.message || 'Failed to update profile.',
+        message: err.message || "Failed to update profile.",
         errors: err.errors,
       });
     } finally {
@@ -53,7 +54,7 @@ export default function Profile() {
 
   const handleDelete = async () => {
     const confirmed = window.confirm(
-      'Are you sure you want to delete your account? This action cannot be undone.'
+      "Are you sure you want to delete your account? This action cannot be undone.",
     );
     if (!confirmed) return;
 
@@ -61,11 +62,11 @@ export default function Profile() {
     setServerError(null);
     try {
       await deleteAccount();
-      toast.success('Account deleted');
-      window.location.href = '/login';
+      toast.success("Account deleted");
+      window.location.href = "/login";
     } catch (err) {
       setServerError({
-        message: err.message || 'Failed to delete account.',
+        message: err.message || "Failed to delete account.",
         errors: err.errors,
       });
       setDeleting(false);
@@ -78,12 +79,12 @@ export default function Profile() {
     try {
       const response = await sendEmailVerification();
       setSuccessMessage(
-        response?.message || 'Verification email sent. Check your inbox.'
+        response?.message || "Verification email sent. Check your inbox.",
       );
-      toast.success('Verification email sent');
+      toast.success("Verification email sent");
     } catch (err) {
       setServerError({
-        message: err.message || 'Could not send verification email.',
+        message: err.message || "Could not send verification email.",
         errors: err.errors,
       });
     } finally {
@@ -102,19 +103,19 @@ export default function Profile() {
 
       <div className="rounded-2xl border border-slate-800 bg-surface-900/60 p-5 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600/20 text-lg font-bold text-brand-400">
-            {(user?.fullName || user?.email || '?').charAt(0).toUpperCase()}
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-600/20 text-lg font-bold text-amber-400">
+            {(user?.fullName || user?.email || "?").charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
             <p className="truncate font-semibold text-white">
-              {user?.fullName || 'User'}
+              {user?.fullName || "User"}
             </p>
             <p className="truncate text-sm text-slate-400">{user?.email}</p>
           </div>
           <div className="ml-auto flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-300">
               <Shield className="h-3 w-3" aria-hidden="true" />
-              {user?.role || 'user'}
+              {user?.role || "user"}
             </span>
             {user?.isVerified ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-400">
@@ -148,11 +149,15 @@ export default function Profile() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+          noValidate
+        >
           <Input
             label="Email"
             type="email"
-            value={user?.email || ''}
+            value={user?.email || ""}
             disabled
             leftIcon={<Mail className="h-4 w-4" />}
             hint="Email cannot be changed"
@@ -163,7 +168,7 @@ export default function Profile() {
             required
             leftIcon={<User className="h-4 w-4" />}
             error={errors.fullName?.message}
-            {...register('fullName')}
+            {...register("fullName")}
           />
 
           <Input
@@ -171,15 +176,11 @@ export default function Profile() {
             type="tel"
             leftIcon={<Phone className="h-4 w-4" />}
             error={errors.phone?.message}
-            {...register('phone')}
+            {...register("phone")}
           />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button
-              type="submit"
-              loading={submitting}
-              disabled={!isDirty}
-            >
+            <Button type="submit" loading={submitting} disabled={!isDirty}>
               Save changes
             </Button>
 

@@ -1,11 +1,11 @@
-import { forwardRef } from 'react';
-import clsx from 'clsx';
+import { forwardRef } from "react";
+import clsx from "clsx";
 
 const Input = forwardRef(function Input(
   {
     label,
     name,
-    type = 'text',
+    type = "text",
     error,
     hint,
     leftIcon,
@@ -17,12 +17,12 @@ const Input = forwardRef(function Input(
     id,
     ...props
   },
-  ref
+  ref,
 ) {
   const inputId = id || name;
 
   return (
-    <div className={clsx('w-full space-y-1.5', containerClassName)}>
+    <div className={clsx("w-full space-y-1.5", containerClassName)}>
       {label && (
         <label
           htmlFor={inputId}
@@ -55,17 +55,17 @@ const Input = forwardRef(function Input(
             error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
           }
           className={clsx(
-            'w-full rounded-xl border bg-surface-900/80 px-3.5 py-2.5 text-sm text-slate-100',
-            'placeholder:text-slate-500',
-            'transition-colors duration-150',
-            'focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500',
-            'disabled:cursor-not-allowed disabled:opacity-50',
+            "w-full rounded-xl border bg-surface-900/80 px-3.5 py-2.5 text-sm text-slate-100",
+            "placeholder:text-slate-500",
+            "transition-colors duration-150",
+            "focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500",
+            "disabled:cursor-not-allowed disabled:opacity-50",
             error
-              ? 'border-red-500/60 focus:ring-red-500/30 focus:border-red-500'
-              : 'border-slate-700 hover:border-slate-600',
-            leftIcon && 'pl-10',
-            rightElement && 'pr-10',
-            className
+              ? "border-red-500/60 focus:ring-red-500/30 focus:border-red-500"
+              : "border-slate-700 hover:border-slate-600",
+            leftIcon && "pl-10",
+            rightElement && "pr-10",
+            className,
           )}
           {...props}
         />

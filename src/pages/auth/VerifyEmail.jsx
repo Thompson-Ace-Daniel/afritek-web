@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, MailCheck } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-import { verifyEmailSchema } from '../../utils/validation';
-import { ROUTES } from '../../utils/constants';
-import Input from '../../components/Input';
-import Button from '../../components/Button';
-import ErrorAlert from '../../components/ErrorAlert';
-import SuccessAlert from '../../components/SuccessAlert';
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, MailCheck } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import { verifyEmailSchema } from "../../utils/validation";
+import { ROUTES } from "../../utils/constants";
+import Input from "../../components/Input";
+import Button from "../../components/Button";
+import ErrorAlert from "../../components/ErrorAlert";
+import SuccessAlert from "../../components/SuccessAlert";
 
 export default function VerifyEmail() {
   const { verifyEmail, sendEmailVerification, isAuthenticated } = useAuth();
@@ -20,10 +20,10 @@ export default function VerifyEmail() {
   const [sending, setSending] = useState(false);
 
   const oobFromUrl =
-    searchParams.get('oobCode') ||
-    searchParams.get('oob') ||
-    searchParams.get('code') ||
-    '';
+    searchParams.get("oobCode") ||
+    searchParams.get("oob") ||
+    searchParams.get("code") ||
+    "";
 
   const {
     register,
@@ -37,7 +37,7 @@ export default function VerifyEmail() {
 
   useEffect(() => {
     if (oobFromUrl) {
-      setValue('oobCode', oobFromUrl);
+      setValue("oobCode", oobFromUrl);
     }
   }, [oobFromUrl, setValue]);
 
@@ -47,13 +47,12 @@ export default function VerifyEmail() {
     setSubmitting(true);
     try {
       const response = await verifyEmail(data.oobCode.trim());
-      setSuccessMessage(
-        response?.message || 'Email verified successfully.'
-      );
+      setSuccessMessage(response?.message || "Email verified successfully.");
     } catch (err) {
       setServerError({
         message:
-          err.message || 'Verification failed. The code may be invalid or expired.',
+          err.message ||
+          "Verification failed. The code may be invalid or expired.",
         errors: err.errors,
       });
     } finally {
@@ -64,7 +63,7 @@ export default function VerifyEmail() {
   const handleResend = async () => {
     if (!isAuthenticated) {
       setServerError({
-        message: 'Please sign in to request a new verification email.',
+        message: "Please sign in to request a new verification email.",
       });
       return;
     }
@@ -73,11 +72,11 @@ export default function VerifyEmail() {
     try {
       const response = await sendEmailVerification();
       setSuccessMessage(
-        response?.message || 'Verification email sent. Check your inbox.'
+        response?.message || "Verification email sent. Check your inbox.",
       );
     } catch (err) {
       setServerError({
-        message: err.message || 'Could not send verification email.',
+        message: err.message || "Could not send verification email.",
         errors: err.errors,
       });
     } finally {
@@ -89,8 +88,8 @@ export default function VerifyEmail() {
     <div className="space-y-6">
       <div className="space-y-1 text-center sm:text-left">
         <div className="mb-3 flex justify-center sm:justify-start">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600/20">
-            <MailCheck className="h-6 w-6 text-brand-400" aria-hidden="true" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-600/20">
+            <MailCheck className="h-6 w-6 text-amber-400" aria-hidden="true" />
           </div>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-white">
@@ -122,7 +121,7 @@ export default function VerifyEmail() {
           required
           hint="Paste the oobCode from your verification email"
           error={errors.oobCode?.message}
-          {...register('oobCode')}
+          {...register("oobCode")}
         />
 
         <Button type="submit" fullWidth loading={submitting} size="lg">
@@ -142,11 +141,11 @@ export default function VerifyEmail() {
       )}
 
       <Link
-        to={isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN}
+        to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.LOGIN}
         className="flex items-center justify-center gap-2 text-sm font-medium text-slate-400 hover:text-slate-200 focus:outline-none focus-visible:underline"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        {isAuthenticated ? 'Back to profile' : 'Back to sign in'}
+        {isAuthenticated ? "Back to profile" : "Back to sign in"}
       </Link>
     </div>
   );

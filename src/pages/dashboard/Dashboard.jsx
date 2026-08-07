@@ -24,7 +24,7 @@ import { useAuth } from "../../hooks/useAuth";
 export default function Dashboard() {
   const [currentTab, setCurrentTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -95,7 +95,7 @@ export default function Dashboard() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-1 scroll-hidden">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = currentTab === tab.id;
@@ -146,7 +146,7 @@ export default function Dashboard() {
                 <Moon className="w-5 h-5" />
               )}
               <span className="text-sm">
-                {darkMode ? "Light Mode" : "Dark Mode"}
+                {darkMode ? "Dark Mode" : "Light Mode"}
               </span>
             </button>
             <button

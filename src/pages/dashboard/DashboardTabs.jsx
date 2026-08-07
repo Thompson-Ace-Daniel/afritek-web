@@ -66,7 +66,7 @@ export const OverviewTab = ({ darkMode, user }) => {
       value: "27.9%",
       change: "+3.1%",
       icon: Percent,
-      color: "blue",
+      color: "amber",
     },
     {
       label: "Active Investments",
@@ -92,15 +92,12 @@ export const OverviewTab = ({ darkMode, user }) => {
   ];
 
   const colorMap = {
-    amber: darkMode
-      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-      : "bg-amber-50 text-amber-600 border-amber-200",
     green: darkMode
       ? "bg-green-500/10 text-green-400 border-green-500/20"
       : "bg-green-50 text-green-600 border-green-200",
-    blue: darkMode
-      ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-      : "bg-blue-50 text-blue-600 border-blue-200",
+    amber: darkMode
+      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+      : "bg-amber-50 text-amber-600 border-amber-200",
     purple: darkMode
       ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
       : "bg-purple-50 text-purple-600 border-purple-200",
@@ -399,8 +396,8 @@ export const PortfolioTab = ({ darkMode, user }) => {
       ? "bg-amber-500/20 text-amber-400 border-amber-500/20"
       : "bg-amber-50 text-amber-600 border-amber-200",
     completed: darkMode
-      ? "bg-blue-500/20 text-blue-400 border-blue-500/20"
-      : "bg-blue-50 text-blue-600 border-blue-200",
+      ? "bg-amber-500/20 text-amber-400 border-amber-500/20"
+      : "bg-amber-50 text-amber-600 border-amber-200",
   };
 
   return (
@@ -696,8 +693,8 @@ export const DividendsTab = ({ darkMode, user }) => {
                           ? "bg-green-500/10 text-green-400"
                           : "bg-green-50 text-green-600"
                         : darkMode
-                          ? "bg-blue-500/10 text-blue-400"
-                          : "bg-blue-50 text-blue-600"
+                          ? "bg-amber-500/10 text-amber-400"
+                          : "bg-amber-50 text-amber-600"
                     }`}
                   >
                     {tx.type === "dividend" ? (
@@ -720,7 +717,7 @@ export const DividendsTab = ({ darkMode, user }) => {
                     className={`font-semibold ${
                       tx.type === "dividend"
                         ? "text-green-500"
-                        : "text-blue-500"
+                        : "text-amber-500"
                     }`}
                   >
                     {tx.type === "dividend" ? "+" : "-"}$
@@ -1067,7 +1064,7 @@ export const ProfileTab = () => {
 
       <div className="rounded-2xl border border-slate-800 bg-surface-900/60 p-5 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600/20 text-lg font-bold text-brand-400">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-600/20 text-lg font-bold text-amber-400">
             {(user?.fullName || user?.email || "?").charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
@@ -1158,6 +1155,12 @@ export const ProfileTab = () => {
                 Send verification email
               </Button>
             )}
+            <Button
+              variant="primary"
+              onClick={() => (window.location.href = "/change-password")}
+            >
+              Change Password
+            </Button>
           </div>
         </form>
       </div>

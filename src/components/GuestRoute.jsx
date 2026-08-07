@@ -12,7 +12,7 @@ export default function GuestRoute({ children }) {
   }
 
   if (isAuthenticated) {
-    const from = location.state?.from || ROUTES.PROFILE;
+    const from = location.state?.from || ROUTES.DASHBOARD;
     return <Navigate to={from} replace />;
   }
 

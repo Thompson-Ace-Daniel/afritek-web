@@ -20,7 +20,7 @@ export function useProtectedRoute(options = {}) {
     }
 
     if (!requireAuth && isAuthenticated) {
-      const from = location.state?.from || ROUTES.PROFILE;
+      const from = location.state?.from || ROUTES.DASHBOARD;
       navigate(from, { replace: true });
     }
   }, [

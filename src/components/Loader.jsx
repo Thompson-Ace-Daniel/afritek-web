@@ -11,7 +11,7 @@ export default function Loader({ size = 'md', className }) {
   return (
     <motion.div
       className={clsx(
-        'inline-block rounded-full border-brand-500 border-t-transparent animate-spin',
+        'inline-block rounded-full border-amber-500 border-t-transparent animate-spin',
         sizes[size] || sizes.md,
         className
       )}

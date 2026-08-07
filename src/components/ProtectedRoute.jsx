@@ -25,7 +25,7 @@ export default function ProtectedRoute({ children, roles }) {
     const userRole = user?.role?.toLowerCase();
     const allowed = roles.map((r) => r.toLowerCase());
     if (userRole !== 'admin' && !allowed.includes(userRole)) {
-      return <Navigate to={ROUTES.PROFILE} replace />;
+      return <Navigate to={ROUTES.DASHBOARD} replace />;
     }
   }
 

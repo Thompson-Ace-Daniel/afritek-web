@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, User, Phone } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useAuth } from '../../hooks/useAuth';
-import { registerSchema } from '../../utils/validation';
-import { ROUTES } from '../../utils/constants';
-import Input from '../../components/Input';
-import PasswordInput from '../../components/PasswordInput';
-import Button from '../../components/Button';
-import ErrorAlert from '../../components/ErrorAlert';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Mail, User, Phone } from "lucide-react";
+import toast from "react-hot-toast";
+import { useAuth } from "../../hooks/useAuth";
+import { registerSchema } from "../../utils/validation";
+import { ROUTES } from "../../utils/constants";
+import Input from "../../components/Input";
+import PasswordInput from "../../components/PasswordInput";
+import Button from "../../components/Button";
+import ErrorAlert from "../../components/ErrorAlert";
 
 export default function Register() {
   const { register: registerUser } = useAuth();
@@ -25,11 +25,11 @@ export default function Register() {
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      fullName: '',
-      email: '',
-      phone: '',
-      password: '',
-      confirmPassword: '',
+      fullName: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -42,13 +42,13 @@ export default function Register() {
         email: data.email.trim().toLowerCase(),
         phone: data.phone?.trim() || undefined,
         password: data.password,
-        role: 'user',
+        role: "user",
       });
-      toast.success('Account created! Please sign in.');
+      toast.success("Account created! Please sign in.");
       navigate(ROUTES.LOGIN, { replace: true });
     } catch (err) {
       setServerError({
-        message: err.message || 'Registration failed. Please try again.',
+        message: err.message || "Registration failed. Please try again.",
         errors: err.errors,
       });
     } finally {
@@ -82,7 +82,7 @@ export default function Register() {
           required
           leftIcon={<User className="h-4 w-4" />}
           error={errors.fullName?.message}
-          {...register('fullName')}
+          {...register("fullName")}
         />
 
         <Input
@@ -92,7 +92,7 @@ export default function Register() {
           required
           leftIcon={<Mail className="h-4 w-4" />}
           error={errors.email?.message}
-          {...register('email')}
+          {...register("email")}
         />
 
         <Input
@@ -102,7 +102,7 @@ export default function Register() {
           leftIcon={<Phone className="h-4 w-4" />}
           hint="Optional. Use E.164 format, e.g. +12345678901"
           error={errors.phone?.message}
-          {...register('phone')}
+          {...register("phone")}
         />
 
         <PasswordInput
@@ -111,7 +111,7 @@ export default function Register() {
           required
           hint="Min 8 chars, upper, lower, number & special character"
           error={errors.password?.message}
-          {...register('password')}
+          {...register("password")}
         />
 
         <PasswordInput
@@ -119,7 +119,7 @@ export default function Register() {
           autoComplete="new-password"
           required
           error={errors.confirmPassword?.message}
-          {...register('confirmPassword')}
+          {...register("confirmPassword")}
         />
 
         <Button type="submit" fullWidth loading={submitting} size="lg">
@@ -128,10 +128,10 @@ export default function Register() {
       </form>
 
       <p className="text-center text-sm text-slate-400">
-        Already have an account?{' '}
+        Already have an account?{" "}
         <Link
           to={ROUTES.LOGIN}
-          className="font-medium text-brand-400 hover:text-brand-300 focus:outline-none focus-visible:underline"
+          className="font-medium text-amber-400 hover:text-amber-300 focus:outline-none focus-visible:underline"
         >
           Sign in
         </Link>
