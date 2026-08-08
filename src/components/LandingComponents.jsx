@@ -838,10 +838,10 @@ export const FeaturesSection = () => {
 
 // ==================== INVESTMENT CALCULATOR ====================
 export const InvestmentCalculator = () => {
-  const [investment, setInvestment] = useState(1000);
+  const [investment, setInvestment] = useState(1000000);
   const sharePrice = 100;
   const units = Math.floor(investment / sharePrice);
-  const estimatedYield = (units * 12.5).toFixed(2);
+  const estimatedYield = (units * 20).toFixed(2);
 
   return (
     <section

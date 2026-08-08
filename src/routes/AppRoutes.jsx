@@ -11,6 +11,7 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import VerifyEmail from "../pages/auth/VerifyEmail";
 import Dashboard from "../pages/dashboard/Dashboard";
 import ChangePassword from "../pages/profile/ChangePassword";
+import NotFound from "../NotFound.jsx";
 import { ROUTES } from "../utils/constants";
 import NullLayout from "@/layouts/NullLayout";
 
@@ -59,7 +60,7 @@ export default function AppRoutes() {
       >
         <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePassword />} />
       </Route>
-      <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
