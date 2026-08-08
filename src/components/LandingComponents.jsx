@@ -838,8 +838,8 @@ export const FeaturesSection = () => {
 
 // ==================== INVESTMENT CALCULATOR ====================
 export const InvestmentCalculator = () => {
-  const [investment, setInvestment] = useState(1000000);
-  const sharePrice = 100;
+  const [investment, setInvestment] = useState(20);
+  const sharePrice = 20;
   const units = Math.floor(investment / sharePrice);
   const estimatedYield = (units * 20).toFixed(2);
 
@@ -873,20 +873,20 @@ export const InvestmentCalculator = () => {
           <div className="space-y-3 bg-zinc-900/10 border border-white/[0.04] p-6 rounded-2xl backdrop-blur-md">
             <div className="flex justify-between text-xs tracking-wider uppercase font-display font-semibold">
               <span className="text-zinc-400">Seed Round Pool</span>
-              <span className="text-amber-400">74.2% Allocated</span>
+              <span className="text-amber-400">20% Allocated</span>
             </div>
             <div className="w-full h-2 bg-zinc-950 rounded-full overflow-hidden border border-white/[0.05]">
               <motion.div
                 className="h-full bg-gradient-to-r from-amber-500 to-amber-600"
                 initial={{ width: "0%" }}
-                whileInView={{ width: "74.2%" }}
+                whileInView={{ width: "20%" }}
                 viewport={{ once: true }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
               />
             </div>
             <div className="flex justify-between text-[10px] text-zinc-500 font-medium">
               <span>Hardcap: $2.5M USD</span>
-              <span>Remaining: $645,000</span>
+              <span>Remaining: $2,000,000</span>
             </div>
           </div>
         </motion.div>
@@ -931,16 +931,16 @@ export const InvestmentCalculator = () => {
                 </div>
                 <input
                   type="range"
-                  min="100"
-                  max="50000"
-                  step="100"
+                  min="20"
+                  max="1000000"
+                  step="20"
                   value={investment}
                   onChange={(e) => setInvestment(Number(e.target.value))}
                   className="w-full accent-amber-500 h-1.5 bg-zinc-950 rounded-lg cursor-pointer border border-white/[0.05]"
                 />
                 <div className="flex justify-between text-[9px] uppercase tracking-widest text-zinc-600 font-semibold font-display">
-                  <span>Min: $100</span>
-                  <span>Max: $50,000</span>
+                  <span>Min: $20</span>
+                  <span>Max: $1,000,000</span>
                 </div>
               </div>
 
@@ -956,7 +956,7 @@ export const InvestmentCalculator = () => {
                     Tokenized Corporate Shares
                   </span>
                   <div className="text-xl font-display font-bold text-white flex items-baseline gap-1.5">
-                    <span>{units}</span>
+                    <span>{units.toLocaleString()}</span>
                     <span className="text-xs font-normal text-zinc-500">
                       Equity Units
                     </span>
@@ -974,7 +974,7 @@ export const InvestmentCalculator = () => {
                     Projected Annual Node Yield
                   </span>
                   <div className="text-xl font-display font-bold text-amber-400 flex items-baseline gap-1.5">
-                    <span>${estimatedYield}</span>
+                    <span>${Number(estimatedYield).toLocaleString()}</span>
                     <span className="text-xs font-normal text-zinc-500">
                       USD / Yr
                     </span>
@@ -982,7 +982,7 @@ export const InvestmentCalculator = () => {
                 </motion.div>
               </div>
 
-              {/* Lock Asset Allocation - Fixed nested <a> issue */}
+              {/* Lock Asset Allocation */}
               <motion.button
                 className="w-full py-4 mt-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold font-display text-xs tracking-widest uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
                 whileHover={{
@@ -991,7 +991,7 @@ export const InvestmentCalculator = () => {
                 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Link to="/login" className="flex gap-3">
+                <Link to="/login" className="flex gap-3 items-center">
                   <Gift className="w-4 h-4" /> Lock Asset Allocation
                 </Link>
               </motion.button>
