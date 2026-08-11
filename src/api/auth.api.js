@@ -14,9 +14,7 @@ export const authApi = {
   },
 
   refreshToken(refreshToken) {
-    return api
-      .post("/auth/refresh-token", { refreshToken })
-      .then((res) => res.data);
+    return api.post("/auth/refresh-token", { refreshToken }).then((res) => res.data);
   },
 
   forgotPassword(email) {
@@ -48,11 +46,10 @@ export const authApi = {
   },
 
   updateProfile(payload) {
-    return api.patch("/auth/profile", payload).then((res) => res.data);
+    return api.patch("/auth/update-profile", payload).then((res) => res.data);
   },
 
   deleteAccount() {
-    return api.delete("/account").then((res) => res.data);
+    return api.delete("/auth/delete-account").then((res) => res.data);
   },
-  deleteAccountAdmin: (uid) => api.delete(`/auth/account/${uid}`),
 };
