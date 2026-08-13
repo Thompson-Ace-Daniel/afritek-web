@@ -7,14 +7,14 @@ export default function NotFound() {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#D4AF37]/5 rounded-full blur-[90px] pointer-events-none" />
 
-      {/* Header / Brand Logo Placeholder */}
+      {/* Header / Afritek Logo Placeholder */}
       <header className="w-full max-w-7xl flex justify-between items-center z-10">
         <a
           href="./"
           className="text-xl font-bold tracking-widest uppercase text-white flex items-center gap-2"
         >
           <span className="w-2.5 h-2.5 bg-[#D4AF37] rounded-full inline-block"></span>
-          Brand
+          Afritek
         </a>
       </header>
 

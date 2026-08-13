@@ -202,7 +202,7 @@ export const AnimatedCounter = ({
 export const Header = ({ isActive, setIsActive, scrolled, navLinks }) => {
   return (
     <motion.header
-      className={`fixed w-full top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-white/6 transition-all duration-500 ${
+      className={`fixed w-full min-h-20 top-0 z-50 backdrop-blur-xl bg-slate-950/80 transition-all duration-500 ${
         scrolled ? "shadow-2xl shadow-black/50" : ""
       }`}
       initial={{ y: -100 }}
@@ -332,7 +332,7 @@ export const Header = ({ isActive, setIsActive, scrolled, navLinks }) => {
 // ==================== HERO SECTION ====================
 export const HeroSection = () => {
   return (
-    <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden py-24">
+    <section className="relative max-h-screen flex items-center justify-center overflow-hidden pt-20 pb-5">
       <div className="absolute inset-0 z-0">
         <video
           autoPlay
@@ -355,26 +355,6 @@ export const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <motion.div
-            className="inline-flex items-center gap-2.5 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-full backdrop-blur-md"
-            animate={{
-              boxShadow: [
-                "0 0 0px rgba(245,158,11,0)",
-                "0 0 20px rgba(245,158,11,0.1)",
-                "0 0 0px rgba(245,158,11,0)",
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <motion.span
-              className="w-2 h-2 rounded-full bg-amber-400"
-              animate={{ scale: [1, 1.5, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-            <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-amber-300 font-display">
-              Seed Stage Allocation Active
-            </span>
-          </motion.div>
           <motion.h1
             className="font-display text-4xl sm:text-6xl lg:text-[76px] font-bold leading-[1.05] tracking-tight text-white"
             initial={{ opacity: 0, y: 20 }}

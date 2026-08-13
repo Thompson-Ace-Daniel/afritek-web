@@ -5,32 +5,35 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react';
-import { authApi } from '../api/auth.api';
-import { tokenService } from '../services/token.service';
-import { storage } from '../utils/storage';
+} from "react";
+import { authApi } from "../api/auth.api";
+import { tokenService } from "../services/token.service";
+import { storage } from "../utils/storage";
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => storage.getUser());
   const [isAuthenticated, setIsAuthenticated] = useState(() =>
-    tokenService.isAuthenticated()
+    tokenService.isAuthenticated(),
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const initRef = useRef(false);
 
-  const persistSession = useCallback(({ accessToken, refreshToken, userData, remember }) => {
-    storage.setSession({
-      accessToken,
-      refreshToken,
-      user: userData,
-      remember,
-    });
-    setUser(userData);
-    setIsAuthenticated(Boolean(accessToken));
-  }, []);
+  const persistSession = useCallback(
+    ({ accessToken, refreshToken, userData, remember }) => {
+      storage.setSession({
+        accessToken,
+        refreshToken,
+        user: userData,
+        remember,
+      });
+      setUser(userData);
+      setIsAuthenticated(Boolean(accessToken));
+    },
+    [],
+  );
 
   const clearSession = useCallback(() => {
     tokenService.clear();
@@ -118,7 +121,9 @@ export function AuthProvider({ children }) {
       const refreshToken = tokens.refreshToken;
 
       if (!accessToken) {
-        throw new Error(response?.message || 'Login failed. No token received.');
+        throw new Error(
+          response?.message || "Login failed. No token received.",
+        );
       }
 
       persistSession({
@@ -130,7 +135,7 @@ export function AuthProvider({ children }) {
 
       return { user: userData, tokens };
     },
-    [persistSession]
+    [persistSession],
   );
 
   const register = useCallback(async (payload) => {
@@ -139,7 +144,7 @@ export function AuthProvider({ children }) {
       password: payload.password,
       fullName: payload.fullName,
       phone: payload.phone || undefined,
-      role: payload.role || 'user',
+      role: payload.role || "user",
     });
     return response;
   }, []);
@@ -166,11 +171,17 @@ export function AuthProvider({ children }) {
     return userData;
   }, []);
 
-  const changePassword = useCallback(async ({ currentPassword, newPassword }) => {
-    const response = await authApi.changePassword({ currentPassword, newPassword });
-    clearSession();
-    return response;
-  }, [clearSession]);
+  const changePassword = useCallback(
+    async ({ currentPassword, newPassword }) => {
+      const response = await authApi.changePassword({
+        currentPassword,
+        newPassword,
+      });
+      clearSession();
+      return response;
+    },
+    [clearSession],
+  );
 
   const forgotPassword = useCallback(async (email) => {
     return authApi.forgotPassword(email);
@@ -180,17 +191,20 @@ export function AuthProvider({ children }) {
     return authApi.resetPassword({ oobCode, newPassword });
   }, []);
 
-  const verifyEmail = useCallback(async (oobCode) => {
-    const response = await authApi.verifyEmail(oobCode);
-    if (tokenService.isAuthenticated()) {
-      try {
-        await fetchCurrentUser();
-      } catch {
-        // ignore
+  const verifyEmail = useCallback(
+    async (oobCode) => {
+      const response = await authApi.verifyEmail(oobCode);
+      if (tokenService.isAuthenticated()) {
+        try {
+          await fetchCurrentUser();
+        } catch {
+          // ignore
+        }
       }
-    }
-    return response;
-  }, [fetchCurrentUser]);
+      return response;
+    },
+    [fetchCurrentUser],
+  );
 
   const sendEmailVerification = useCallback(async () => {
     return authApi.sendEmailVerification();
@@ -218,8 +232,12 @@ export function AuthProvider({ children }) {
       verifyEmail,
       sendEmailVerification,
       deleteAccount,
+      refreshUser: fetchCurrentUser,
       fetchCurrentUser,
       clearSession,
+      setUser,
+      isAdmin: user?.role === "admin",
+      isModerator: user?.role === "moderator" || user?.role === "admin",
     }),
     [
       user,
@@ -238,7 +256,7 @@ export function AuthProvider({ children }) {
       deleteAccount,
       fetchCurrentUser,
       clearSession,
-    ]
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

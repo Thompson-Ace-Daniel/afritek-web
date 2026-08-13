@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,31 +10,68 @@ import {
   Sun,
   Moon,
   HelpCircle,
+  ShoppingCart,
+  Gift,
+  ArrowUpRight,
+  ArrowDownRight,
+  Copy,
+  Check,
+  Users,
+  TrendingUp as TrendingUpIcon,
+  DollarSign,
+  Clock,
+  Calendar,
+  ChevronRight,
 } from "lucide-react";
 import afriTech from "../../assets/afritek-logo.jpg";
 import {
-  OverviewTab,
+  DashboardTab,
   PortfolioTab,
   DividendsTab,
   SupportTab,
   ProfileTab,
+  BuySharesModal,
+  WalletTab,
+  WithdrawalsTab,
+  ReferralTab,
 } from "./DashboardTabs";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function Dashboard() {
-  const [currentTab, setCurrentTab] = useState("overview");
+  const [currentTab, setCurrentTab] = useState(
+    new URL(window.location.href).searchParams.get("currentTab") || "dashboard",
+  );
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
+  const [showBuySharesModal, setShowBuySharesModal] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   const tabs = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "wallet", label: "Wallet", icon: Wallet },
+    { id: "withdrawals", label: "Withdrawals", icon: ArrowUpRight },
+    { id: "referrals", label: "Referrals", icon: Users },
     { id: "portfolio", label: "Portfolio", icon: Briefcase },
-    { id: "dividends", label: "Dividends", icon: Wallet },
+    { id: "dividends", label: "Dividends", icon: DollarSign },
     { id: "support", label: "Support", icon: HelpCircle },
     { id: "profile", label: "Profile", icon: User },
   ];
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const params = {
+      currentTab: currentTab,
+    };
+
+    url.searchParams.delete("currentTab");
+
+    Object.keys(params).forEach((key) =>
+      url.searchParams.append(key, params[key]),
+    );
+
+    window.history.replaceState({}, "", url.toString());
+  }, [currentTab]);
 
   const handleLogout = async () => {
     await logout();
@@ -58,7 +95,7 @@ export default function Dashboard() {
           <div
             className={`flex items-center gap-3 p-6 ${darkMode ? "border-b border-zinc-800" : "border-b border-gray-200"}`}
           >
-            <div className=" text-black rounded-lg border-3 w-fit h-fit border-amber-400">
+            <div className="text-black rounded-lg border-2 w-fit h-fit border-amber-400">
               <img src={afriTech} alt="" className="w-12 h-10 rounded-md" />
             </div>
             <div>
@@ -95,7 +132,7 @@ export default function Dashboard() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 scroll-hidden">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = currentTab === tab.id;
@@ -112,8 +149,8 @@ export default function Dashboard() {
                         ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                         : "bg-amber-50 text-amber-600 border border-amber-200"
                       : darkMode
-                        ? "text-zinc-400 hover:bg-zinc-800/50"
-                        : "text-gray-600 hover:bg-gray-100"
+                        ? "text-zinc-400 hover:bg-zinc-800/50 border-none border-transparent"
+                        : "text-gray-600 hover:bg-gray-100 border-none border-transparent"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -146,7 +183,7 @@ export default function Dashboard() {
                 <Moon className="w-5 h-5" />
               )}
               <span className="text-sm">
-                {darkMode ? "Dark Mode" : "Light Mode"}
+                {darkMode ? "Light Mode" : "Dark Mode"}
               </span>
             </button>
             <button
@@ -180,9 +217,11 @@ export default function Dashboard() {
             <Menu className={darkMode ? "text-white" : "text-gray-900"} />
           </button>
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-1.5 rounded-lg">
-              <span className="text-white font-bold text-sm">A</span>
-            </div>
+            <img
+              src="/afritek-logo-transparent.png"
+              alt="AfriTek's Logo"
+              className="h-8 w-8"
+            />
             <span
               className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}
             >
@@ -201,8 +240,21 @@ export default function Dashboard() {
       {/* ====== MAIN CONTENT ====== */}
       <main className={`lg:ml-64 pt-16 lg:pt-0 min-h-screen pb-24 lg:pb-0`}>
         <div className="p-4 md:p-8 max-w-7xl mx-auto">
-          {currentTab === "overview" && (
-            <OverviewTab darkMode={darkMode} user={user} />
+          {currentTab === "dashboard" && (
+            <DashboardTab
+              darkMode={darkMode}
+              user={user}
+              onBuyShares={() => setShowBuySharesModal(true)}
+            />
+          )}
+          {currentTab === "wallet" && (
+            <WalletTab darkMode={darkMode} user={user} />
+          )}
+          {currentTab === "withdrawals" && (
+            <WithdrawalsTab darkMode={darkMode} user={user} />
+          )}
+          {currentTab === "referrals" && (
+            <ReferralTab darkMode={darkMode} user={user} />
           )}
           {currentTab === "portfolio" && (
             <PortfolioTab darkMode={darkMode} user={user} />
@@ -214,11 +266,7 @@ export default function Dashboard() {
             <SupportTab darkMode={darkMode} user={user} />
           )}
           {currentTab === "profile" && (
-            <ProfileTab
-              darkMode={darkMode}
-              user={user}
-              onProfileUpdate={() => {}}
-            />
+            <ProfileTab darkMode={darkMode} user={user} />
           )}
         </div>
       </main>
@@ -232,7 +280,7 @@ export default function Dashboard() {
         } lg:hidden`}
       >
         <div className="flex items-center justify-around p-2">
-          {tabs.map((tab) => {
+          {tabs.slice(0, 4).map((tab) => {
             const Icon = tab.icon;
             const isActive = currentTab === tab.id;
             return (
@@ -254,6 +302,13 @@ export default function Dashboard() {
           })}
         </div>
       </div>
+
+      {/* ====== BUY SHARES MODAL ====== */}
+      <BuySharesModal
+        isOpen={showBuySharesModal}
+        onClose={() => setShowBuySharesModal(false)}
+        darkMode={darkMode}
+      />
     </div>
   );
 }

@@ -43,9 +43,7 @@ export default function AppLayout() {
             className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-600">
-              <span className="text-xs font-bold text-white">
-                {APP_NAME.charAt(0)}
-              </span>
+              <img src="/afritek-logo-transparent.png" alt={`${APP_NAME}'s Logo`} />
             </div>
             <span className="font-semibold text-white">{APP_NAME}</span>
           </Link>
