@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, User, Phone } from "lucide-react";
+import { Mail, User, Phone, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../hooks/useAuth";
 import { registerSchema } from "../../utils/validation";
 import { ROUTES } from "../../utils/constants";
+import { referralAPI } from "../../api/auth.api.js";
 import Input from "../../components/Input";
 import PasswordInput from "../../components/PasswordInput";
 import Button from "../../components/Button";
@@ -15,12 +16,17 @@ import ErrorAlert from "../../components/ErrorAlert";
 export default function Register() {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get("ref") || "";
+
   const [serverError, setServerError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [referrerName, setReferrerName] = useState("");
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -30,26 +36,58 @@ export default function Register() {
       phone: "",
       password: "",
       confirmPassword: "",
+      referralCode: refCode,
     },
   });
+
+  // Automatically update and resolve referral code if present in query params
+  useEffect(() => {
+    if (refCode) {
+      setValue("referralCode", refCode);
+      referralAPI
+        .resolve(refCode)
+        .then((res) => {
+          if (res.data?.data?.valid) {
+            setReferrerName(res.data.data.referrer.fullName);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [refCode, setValue]);
 
   const onSubmit = async (data) => {
     setServerError(null);
     setSubmitting(true);
+
+    // Build payload incorporating API rules and keeping role
+    const payload = {
+      fullName: data.fullName.trim(),
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
+      role: "user",
+    };
+
+    const trimmedPhone = data.phone?.trim();
+    if (trimmedPhone) payload.phone = trimmedPhone;
+
+    const trimmedRefCode = data.referralCode?.trim();
+    if (trimmedRefCode) payload.referralCode = trimmedRefCode;
+
     try {
-      await registerUser({
-        fullName: data.fullName.trim(),
-        email: data.email.trim().toLowerCase(),
-        phone: data.phone?.trim() || undefined,
-        password: data.password,
-        role: "user",
-      });
+      await registerUser(payload);
       toast.success("Account created! Please sign in.");
       navigate(ROUTES.LOGIN, { replace: true });
     } catch (err) {
+      // Enhanced error extraction from response data or generic message
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.errors?.[0]?.message ||
+        err.message ||
+        "Registration failed. Please try again.";
+
       setServerError({
-        message: err.message || "Registration failed. Please try again.",
-        errors: err.errors,
+        message,
+        errors: err.response?.data?.errors || err.errors,
       });
     } finally {
       setSubmitting(false);
@@ -66,6 +104,12 @@ export default function Register() {
           Get started with your free account
         </p>
       </div>
+
+      {referrerName && (
+        <div className="rounded-md bg-emerald-500/10 p-3 text-center text-sm text-emerald-400 border border-emerald-500/20">
+          You were invited by <strong>{referrerName}</strong>
+        </div>
+      )}
 
       {serverError && (
         <ErrorAlert
@@ -120,6 +164,15 @@ export default function Register() {
           required
           error={errors.confirmPassword?.message}
           {...register("confirmPassword")}
+        />
+
+        <Input
+          label="Referral code"
+          type="text"
+          leftIcon={<Tag className="h-4 w-4" />}
+          hint="Optional"
+          error={errors.referralCode?.message}
+          {...register("referralCode")}
         />
 
         <Button type="submit" fullWidth loading={submitting} size="lg">

@@ -1,65 +1,29 @@
-// ==================== DASHBOARD TAB ====================
-
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Award,
   TrendingUp,
-  DollarSign,
   Shield,
   Plus,
-  Filter,
-  Download,
-  CheckCircle,
   Crown,
-  Clock,
-  Percent,
-  Briefcase,
   Wallet,
-  Activity,
-  Phone,
-  Mail,
-  Send,
-  Edit,
-  Save,
-  BarChart3,
   Smartphone,
-  ArrowUpRight,
-  ArrowDownRight,
-  Check,
-  X,
-  Minus,
-  Zap,
-  User,
-  Key,
-  AlertTriangle,
-  Copy,
+  BarChart3,
+  CheckCircle,
+  Share2,
   Users,
-  Gift,
-  Calendar,
-  ChevronRight,
-  Eye,
-  EyeOff,
-  Upload,
-  Download as DownloadIcon,
-  RefreshCw,
-  Settings,
-  CreditCard,
-  Banknote,
-  PiggyBank,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown,
 } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth.js";
-import { useForm } from "react-hook-form";
-import { shareAPI, walletAPI, referralAPI } from "../../api/utils.api.js";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "react-hot-toast";
-import { updateProfileSchema } from "../../utils/validation.js";
-import SuccessAlert from "../SuccessAlert.jsx";
-import ErrorAlert from "../ErrorAlert.jsx";
+import { useAuth } from "../../hooks/useAuth";
+import { shareAPI, walletAPI, referralAPI } from "../../api/auth.api.js";
 
+export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
+  const { user: authUser, refreshUser } = useAuth();
+  const currentUser = propUser || authUser;
 
-export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
+  const [shareInfo, setShareInfo] = useState(null);
+  const [wallet, setWallet] = useState(null);
+  const [referral, setReferral] = useState(null);
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -68,58 +32,54 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
           walletAPI.get(),
           referralAPI.getMyStats(),
         ]);
-        setShareInfo(sharesRes.data.data);
-        setWallet(walletRes.data.data);
-        setReferral(refRes.data.data);
-        await refreshUser();
+        setShareInfo(sharesRes.data?.data || null);
+        setWallet(walletRes.data?.data || null);
+        setReferral(refRes.data?.data || null);
+        if (refreshUser) {
+          await refreshUser();
+        }
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load dashboard data:", err);
       }
     };
     load();
-  }, []);
+  }, [refreshUser]);
 
   const userData = {
-    name: user?.fullName || "Guest",
-    tier: user?.role === "admin" ? "Gold Investor" : "Investor",
+    name: currentUser?.fullName || "Guest",
+    tier: currentUser?.role === "admin" ? "Gold Investor" : "Investor",
   };
 
+  // Dynamic statistics bound to API data
   const stats = [
     {
-      label: "Active Investments",
-      value: "8",
-      change: "+2",
-      icon: TrendingUp,
+      label: "Shares Owned",
+      value: (currentUser?.sharesOwned ?? 0).toLocaleString(),
+      change: "Active Shares",
+      icon: Share2,
       color: "amber",
     },
     {
       label: "Total Invested",
-      value: "$12,800",
-      change: "-$2,400",
-      icon: DollarSign,
+      value: `₦${(currentUser?.totalInvested ?? 0).toLocaleString()}`,
+      change: "Lifetime Total",
+      icon: TrendingUp,
       color: "green",
     },
     {
-      label: "Current Earnings",
-      value: "$23,450",
-      change: "+$5,200",
+      label: "Wallet Balance",
+      value: `₦${(wallet?.balance ?? 0).toLocaleString()}`,
+      change: "Available Cash",
       icon: Wallet,
-      color: "amber",
-    },
-    {
-      label: "Available Balance",
-      value: "$2,150",
-      change: "+$150",
-      icon: Briefcase,
       color: "purple",
     },
-  ];
-
-  const marketIndices = [
-    { name: "MOX All Shares", value: "102,345.67", change: "+1.2%" },
-    { name: "MOX 30", value: "3,890.12", change: "+0.5%" },
-    { name: "Banking Index", value: "876.45", change: "+2.7%" },
-    { name: "Insurance Index", value: "345.90", change: "+0.8%" },
+    {
+      label: "Referral Earnings",
+      value: `₦${(referral?.totalReferralEarnings ?? 0).toLocaleString()}`,
+      change: "Bonus Earned",
+      icon: Users,
+      color: "orange",
+    },
   ];
 
   const colorMap = {
@@ -135,17 +95,17 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
     orange: darkMode
       ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
       : "bg-orange-50 text-orange-600 border-orange-200",
-    emerald: darkMode
-      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-      : "bg-emerald-50 text-emerald-600 border-emerald-200",
   };
 
   return (
     <div className="space-y-6">
+      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1
-            className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
+            className={`text-2xl font-bold ${
+              darkMode ? "text-white" : "text-gray-900"
+            }`}
           >
             Welcome, {userData.name}
           </h1>
@@ -163,32 +123,47 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
           >
             <Award className={darkMode ? "text-amber-400" : "text-amber-600"} />
             <span
-              className={`text-sm font-semibold ${darkMode ? "text-amber-400" : "text-amber-600"}`}
+              className={`text-sm font-semibold ${
+                darkMode ? "text-amber-400" : "text-amber-600"
+              }`}
             >
               {userData.tier}
             </span>
           </div>
-          <button
-            onClick={onBuyShares}
-            className="px-4 py-2 bg-amber-500 text-white font-semibold rounded-xl text-sm hover:bg-amber-600 transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Buy Shares
-          </button>
+
+          {onBuyShares ? (
+            <button
+              onClick={onBuyShares}
+              className="px-4 py-2 bg-amber-500 text-white font-semibold rounded-xl text-sm hover:bg-amber-600 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Buy Shares
+            </button>
+          ) : (
+            <Link
+              to="/shares"
+              className="px-4 py-2 bg-amber-500 text-white font-semibold rounded-xl text-sm hover:bg-amber-600 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Buy Shares
+            </Link>
+          )}
         </div>
       </div>
 
+      {/* Main Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
-          const isPositive = stat.change.startsWith("+");
           const bgMap = darkMode
             ? "bg-zinc-900/50 border-zinc-800"
             : "bg-white border-gray-200";
           return (
             <div
               key={index}
-              className={`${bgMap} border rounded-2xl p-6 hover:${darkMode ? "border-zinc-700" : "shadow-lg"} transition-all`}
+              className={`${bgMap} border rounded-2xl p-6 hover:${
+                darkMode ? "border-zinc-700" : "shadow-lg"
+              } transition-all`}
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -196,13 +171,13 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
                     {stat.label}
                   </p>
                   <p
-                    className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mt-1`}
+                    className={`text-2xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } mt-1`}
                   >
                     {stat.value}
                   </p>
-                  <p
-                    className={`text-xs font-medium mt-1 ${isPositive ? "text-green-500" : "text-red-500"}`}
-                  >
+                  <p className="text-xs font-medium mt-1 text-zinc-500">
                     {stat.change}
                   </p>
                 </div>
@@ -217,47 +192,129 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
         })}
       </div>
 
-      <div
-        className={`${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-gray-200"} border rounded-2xl p-6`}
-      >
-        <h3 className={darkMode ? "text-white" : "text-gray-900"}>
-          Market Overview
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-          {marketIndices.map((index, i) => (
+      {/* Share Market Overview (Dynamic Data) */}
+      {shareInfo && (
+        <div
+          className={`${
+            darkMode
+              ? "bg-zinc-900/50 border-zinc-800"
+              : "bg-white border-gray-200"
+          } border rounded-2xl p-6`}
+        >
+          <h3
+            className={`text-lg font-semibold ${
+              darkMode ? "text-white" : "text-gray-900"
+            }`}
+          >
+            Share Market Overview
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
             <div
-              key={i}
-              className={`p-4 ${darkMode ? "bg-zinc-800/50" : "bg-gray-50"} rounded-xl`}
+              className={`p-4 ${
+                darkMode ? "bg-zinc-800/50" : "bg-gray-50"
+              } rounded-xl`}
             >
               <p
-                className={`text-xs font-medium ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+                className={`text-xs font-medium ${
+                  darkMode ? "text-zinc-400" : "text-gray-500"
+                }`}
               >
-                {index.name}
+                Price per Share
               </p>
               <p
-                className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-900"} mt-1`}
+                className={`text-lg font-bold ${
+                  darkMode ? "text-white" : "text-gray-900"
+                } mt-1`}
               >
-                {index.value}
-              </p>
-              <p
-                className={`text-xs font-semibold ${index.change.startsWith("+") ? "text-green-500" : "text-amber-500"}`}
-              >
-                {index.change}
+                ₦{(shareInfo.pricePerShare ?? 0).toLocaleString()}
               </p>
             </div>
-          ))}
+            <div
+              className={`p-4 ${
+                darkMode ? "bg-zinc-800/50" : "bg-gray-50"
+              } rounded-xl`}
+            >
+              <p
+                className={`text-xs font-medium ${
+                  darkMode ? "text-zinc-400" : "text-gray-500"
+                }`}
+              >
+                Remaining Shares
+              </p>
+              <p
+                className={`text-lg font-bold ${
+                  darkMode ? "text-white" : "text-gray-900"
+                } mt-1`}
+              >
+                {(shareInfo.remainingShares ?? 0).toLocaleString()}
+              </p>
+            </div>
+            <div
+              className={`p-4 ${
+                darkMode ? "bg-zinc-800/50" : "bg-gray-50"
+              } rounded-xl`}
+            >
+              <p
+                className={`text-xs font-medium ${
+                  darkMode ? "text-zinc-400" : "text-gray-500"
+                }`}
+              >
+                Sold Shares
+              </p>
+              <p
+                className={`text-lg font-bold ${
+                  darkMode ? "text-white" : "text-gray-900"
+                } mt-1`}
+              >
+                {(shareInfo.soldShares ?? 0).toLocaleString()}
+              </p>
+            </div>
+            <div
+              className={`p-4 ${
+                darkMode ? "bg-zinc-800/50" : "bg-gray-50"
+              } rounded-xl`}
+            >
+              <p
+                className={`text-xs font-medium ${
+                  darkMode ? "text-zinc-400" : "text-gray-500"
+                }`}
+              >
+                Total Market Value
+              </p>
+              <p
+                className={`text-lg font-bold ${
+                  darkMode ? "text-white" : "text-gray-900"
+                } mt-1`}
+              >
+                ₦{(shareInfo.totalValue ?? 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* Investor Tier Progress */}
       <div
-        className={`${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-gray-200"} border rounded-2xl p-6`}
+        className={`${
+          darkMode
+            ? "bg-zinc-900/50 border-zinc-800"
+            : "bg-white border-gray-200"
+        } border rounded-2xl p-6`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
-            <h3 className={darkMode ? "text-white" : "text-gray-900"}>
+            <h3
+              className={`font-semibold ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
               Investor Tier Progress
             </h3>
-            <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
+            <p
+              className={`text-sm ${
+                darkMode ? "text-zinc-400" : "text-gray-500"
+              }`}
+            >
               You're at {userData.tier} level
             </p>
           </div>
@@ -266,12 +323,14 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
             <span className={darkMode ? "text-zinc-300" : "text-gray-700"}>
               Next: Platinum Investor
             </span>
-            <span className="text-amber-500 font-bold">$500,000</span>
+            <span className="text-amber-500 font-bold">₦500,000</span>
           </div>
         </div>
         <div className="relative">
           <div
-            className={`h-3 ${darkMode ? "bg-zinc-800" : "bg-gray-200"} rounded-full overflow-hidden`}
+            className={`h-3 ${
+              darkMode ? "bg-zinc-800" : "bg-gray-200"
+            } rounded-full overflow-hidden`}
           >
             <div
               className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-1000"
@@ -279,7 +338,9 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
             />
           </div>
           <div
-            className={`flex justify-between mt-2 text-xs ${darkMode ? "text-zinc-500" : "text-gray-400"}`}
+            className={`flex justify-between mt-2 text-xs ${
+              darkMode ? "text-zinc-500" : "text-gray-400"
+            }`}
           >
             <span>Starter</span>
             <span>Silver</span>
@@ -306,7 +367,9 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
                 {tier}
                 {i <= 2 && (
                   <CheckCircle
-                    className={`w-3 h-3 inline ml-1 ${darkMode ? "text-amber-400" : "text-amber-600"}`}
+                    className={`w-3 h-3 inline ml-1 ${
+                      darkMode ? "text-amber-400" : "text-amber-600"
+                    }`}
                   />
                 )}
               </div>
@@ -315,10 +378,19 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
         </div>
       </div>
 
+      {/* Equity Partner Advantages */}
       <div
-        className={`${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-gray-200"} border rounded-2xl p-6`}
+        className={`${
+          darkMode
+            ? "bg-zinc-900/50 border-zinc-800"
+            : "bg-white border-gray-200"
+        } border rounded-2xl p-6`}
       >
-        <h3 className={darkMode ? "text-white" : "text-gray-900"}>
+        <h3
+          className={`font-semibold ${
+            darkMode ? "text-white" : "text-gray-900"
+          }`}
+        >
           Equity Partner Advantages
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -363,12 +435,16 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
               </div>
               <div>
                 <h4
-                  className={`font-medium text-sm ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`font-medium text-sm ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
                   {item.title}
                 </h4>
                 <p
-                  className={`text-xs mt-0.5 ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+                  className={`text-xs mt-0.5 ${
+                    darkMode ? "text-zinc-400" : "text-gray-500"
+                  }`}
                 >
                   {item.desc}
                 </p>
@@ -380,3 +456,5 @@ export const DashboardTab = ({ darkMode, user, onBuyShares }) => {
     </div>
   );
 };
+
+export default DashboardTab;

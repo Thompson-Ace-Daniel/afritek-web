@@ -55,3 +55,55 @@ export const authApi = {
     return api.delete("/auth/delete-account").then((res) => res.data);
   },
 };
+
+// ====================== REFERRALS ======================
+export const referralAPI = {
+  resolve(code) {
+    return api.get(`/referrals/resolve/${code}`);
+  },
+  getMyStats() {
+    return api.get("/referrals/me");
+  },
+};
+
+// ====================== SHARES ======================
+export const shareAPI = {
+  getInfo() {
+    return api.get("/shares");
+  },
+  getMyShares() {
+    return api.get("/shares/me");
+  },
+  buy(body) {
+    return api.post("/shares/buy", body);
+  },
+  verifyPaystack(reference) {
+    return api.post("/shares/verify/paystack", { reference });
+  },
+};
+
+// ====================== WALLET ======================
+export const walletAPI = {
+  get() {
+    return api.get("/wallet");
+  },
+  deposit(body) {
+    return api.post("/wallet/deposit", body);
+  },
+};
+
+// ====================== WITHDRAWALS ======================
+export const withdrawalAPI = {
+  request(body) {
+    return api.post("/withdrawals", body);
+  },
+  getMine() {
+    return api.get("/withdrawals/me");
+  },
+  getPending() {
+    return api.get("/withdrawals/pending");
+  },
+  process(id, body) {
+    return api.patch(`/withdrawals/${id}/process`, body);
+  },
+};

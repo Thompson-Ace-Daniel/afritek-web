@@ -1,127 +1,94 @@
 // ==================== WALLET TAB ====================
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  Award,
-  TrendingUp,
-  DollarSign,
-  Shield,
-  Plus,
-  Filter,
-  Download,
-  CheckCircle,
-  Crown,
-  Clock,
-  Percent,
-  Briefcase,
   Wallet,
-  Activity,
-  Phone,
-  Mail,
-  Send,
-  Edit,
-  Save,
-  BarChart3,
-  Smartphone,
-  ArrowUpRight,
-  ArrowDownRight,
-  Check,
-  X,
-  Minus,
-  Zap,
-  User,
-  Key,
-  AlertTriangle,
-  Copy,
-  Users,
   Gift,
-  Calendar,
-  ChevronRight,
-  Eye,
-  EyeOff,
+  DollarSign,
+  TrendingUp,
   Upload,
-  Download as DownloadIcon,
   RefreshCw,
-  Settings,
-  CreditCard,
-  Banknote,
-  PiggyBank,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown,
+  Loader2,
+  ArrowDownRight,
 } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth.js";
-import { useForm } from "react-hook-form";
-import { shareAPI, walletAPI, referralAPI } from "../../api/utils.api.js";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { walletAPI } from "../../api/auth.api.js";
 import { toast } from "react-hot-toast";
-import { updateProfileSchema } from "../../utils/validation.js";
-import SuccessAlert from "../SuccessAlert.jsx";
-import ErrorAlert from "../ErrorAlert.jsx";
 
+export const WalletTab = ({ darkMode }) => {
+  const [wallet, setWallet] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [depositing, setDepositing] = useState(false);
 
-export const WalletTab = ({ darkMode, user }) => {
+  // Form State
   const [depositAmount, setDepositAmount] = useState("");
   const [depositDescription, setDepositDescription] = useState("Test deposit");
+
+  // Fetch Wallet Data from API
+  const fetchWallet = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await walletAPI.get();
+      setWallet(data.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to load wallet info");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWallet();
+  }, [fetchWallet]);
+
+  // Handle API Deposit
+  const handleDeposit = async (e) => {
+    e.preventDefault();
+    if (!depositAmount || Number(depositAmount) <= 0) {
+      toast.error("Please enter a valid deposit amount");
+      return;
+    }
+
+    setDepositing(true);
+    try {
+      const { data } = await walletAPI.deposit({
+        amount: Number(depositAmount),
+        description: depositDescription,
+      });
+
+      toast.success(data.message || "Deposit successful!");
+      setDepositAmount("");
+      fetchWallet();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Deposit failed");
+    } finally {
+      setDepositing(false);
+    }
+  };
 
   const walletStats = [
     {
       label: "Available Balance",
-      value: "₦245,000.00",
+      value: `₦${(wallet?.balance ?? 0).toLocaleString()}`,
       icon: Wallet,
       color: "amber",
     },
     {
       label: "Total Referral Earnings",
-      value: "₦12,800.00",
+      value: `₦${(wallet?.totalReferralEarnings ?? 0).toLocaleString()}`,
       icon: Gift,
       color: "green",
     },
     {
       label: "Total Invested",
-      value: "₦680,000.00",
-      icon: TrendingUpIcon,
+      value: `₦${(wallet?.totalInvested ?? 0).toLocaleString()}`,
+      icon: TrendingUp,
       color: "purple",
     },
     {
       label: "Total Returns",
-      value: "₦89,400.00",
+      value: `₦${(wallet?.totalReturns ?? 0).toLocaleString()}`,
       icon: DollarSign,
       color: "emerald",
-    },
-  ];
-
-  const recentTransactions = [
-    {
-      id: 1,
-      type: "deposit",
-      amount: 50000,
-      status: "completed",
-      date: "Mar 15, 2025",
-      description: "Manual Deposit",
-    },
-    {
-      id: 2,
-      type: "referral_bonus",
-      amount: 2400,
-      status: "completed",
-      date: "Mar 14, 2025",
-      description: "Referral Bonus - John Doe",
-    },
-    {
-      id: 3,
-      type: "withdrawal",
-      amount: 10000,
-      status: "pending",
-      date: "Mar 12, 2025",
-      description: "Withdrawal to Bank",
-    },
-    {
-      id: 4,
-      type: "investment",
-      amount: 25000,
-      status: "completed",
-      date: "Mar 10, 2025",
-      description: "AfriTek Seed Fund Investment",
     },
   ];
 
@@ -140,43 +107,15 @@ export const WalletTab = ({ darkMode, user }) => {
       : "bg-emerald-50 text-emerald-600 border-emerald-200",
   };
 
-  const typeColors = {
-    deposit: darkMode
-      ? "bg-green-500/20 text-green-400"
-      : "bg-green-50 text-green-600",
-    withdrawal: darkMode
-      ? "bg-red-500/20 text-red-400"
-      : "bg-red-50 text-red-600",
-    referral_bonus: darkMode
-      ? "bg-amber-500/20 text-amber-400"
-      : "bg-amber-50 text-amber-600",
-    investment: darkMode
-      ? "bg-blue-500/20 text-blue-400"
-      : "bg-blue-50 text-blue-600",
-  };
-
-  const typeIcons = {
-    deposit: <ArrowDownRight className="w-4 h-4" />,
-    withdrawal: <ArrowUpRight className="w-4 h-4" />,
-    referral_bonus: <Gift className="w-4 h-4" />,
-    investment: <TrendingUp className="w-4 h-4" />,
-  };
-
-  const handleDeposit = () => {
-    if (depositAmount) {
-      alert(`Deposit of ₦${depositAmount} initiated successfully!`);
-      setDepositAmount("");
-    } else {
-      alert("Please enter an amount");
-    }
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1
-            className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
+            className={`text-2xl font-bold ${
+              darkMode ? "text-white" : "text-gray-900"
+            }`}
           >
             Wallet
           </h1>
@@ -185,36 +124,47 @@ export const WalletTab = ({ darkMode, user }) => {
           </p>
         </div>
         <button
+          onClick={fetchWallet}
+          disabled={loading}
           className={`px-4 py-2 ${
             darkMode
               ? "bg-zinc-800 hover:bg-zinc-700 text-white"
               : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-          } rounded-xl text-sm transition-colors flex items-center gap-2`}
+          } rounded-xl text-sm transition-colors flex items-center gap-2 self-start md:self-auto disabled:opacity-50`}
         >
-          <RefreshCw className="w-4 h-4" /> Refresh
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          Refresh
         </button>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {walletStats.map((stat, index) => {
           const Icon = stat.icon;
           const bgMap = darkMode
             ? "bg-zinc-900/50 border-zinc-800"
             : "bg-white border-gray-200";
+
           return (
             <div
               key={index}
-              className={`${bgMap} border rounded-2xl p-6 hover:${darkMode ? "border-zinc-700" : "shadow-lg"} transition-all`}
+              className={`${bgMap} border rounded-2xl p-6 transition-all`}
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-zinc-400" : "text-gray-500"
+                    }`}
+                  >
                     {stat.label}
                   </p>
                   <p
-                    className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mt-1`}
+                    className={`text-xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } mt-1`}
                   >
-                    {stat.value}
+                    {loading ? "..." : stat.value}
                   </p>
                 </div>
                 <div
@@ -228,24 +178,37 @@ export const WalletTab = ({ darkMode, user }) => {
         })}
       </div>
 
+      {/* Main Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Deposit Form */}
         <div
-          className={`lg:col-span-1 ${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-gray-200"} border rounded-2xl p-6`}
+          className={`lg:col-span-1 ${
+            darkMode
+              ? "bg-zinc-900/50 border-zinc-800"
+              : "bg-white border-gray-200"
+          } border rounded-2xl p-6 flex flex-col justify-between`}
         >
-          <h3
-            className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-4`}
-          >
-            Manual Deposit (Testing)
-          </h3>
-          <div className="space-y-4">
+          <form onSubmit={handleDeposit} className="space-y-4">
+            <h3
+              className={`text-lg font-bold ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Manual Deposit (Testing)
+            </h3>
+
             <div>
               <label
-                className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-gray-700"} block mb-1.5`}
+                className={`text-sm font-medium ${
+                  darkMode ? "text-zinc-300" : "text-gray-700"
+                } block mb-1.5`}
               >
                 Amount (₦)
               </label>
               <input
                 type="number"
+                min="1"
+                required
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
                 placeholder="Enter amount"
@@ -256,9 +219,12 @@ export const WalletTab = ({ darkMode, user }) => {
                 } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
               />
             </div>
+
             <div>
               <label
-                className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-gray-700"} block mb-1.5`}
+                className={`text-sm font-medium ${
+                  darkMode ? "text-zinc-300" : "text-gray-700"
+                } block mb-1.5`}
               >
                 Description
               </label>
@@ -274,111 +240,115 @@ export const WalletTab = ({ darkMode, user }) => {
                 } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
               />
             </div>
+
             <button
-              onClick={handleDeposit}
-              className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+              type="submit"
+              disabled={depositing}
+              className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
             >
-              <Upload className="w-4 h-4" /> Deposit
+              {depositing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" /> Deposit
+                </>
+              )}
             </button>
-          </div>
+          </form>
         </div>
 
+        {/* Recent Commissions & Activity Table */}
         <div
-          className={`lg:col-span-2 ${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-gray-200"} border rounded-2xl p-6`}
+          className={`lg:col-span-2 ${
+            darkMode
+              ? "bg-zinc-900/50 border-zinc-800"
+              : "bg-white border-gray-200"
+          } border rounded-2xl p-6`}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3
-              className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
-            >
-              Recent Transactions
-            </h3>
-            <button
-              className={`text-sm ${darkMode ? "text-zinc-400 hover:text-white" : "text-gray-500 hover:text-gray-700"} transition-colors`}
-            >
-              View All
-            </button>
-          </div>
-          <div className="space-y-3">
-            {recentTransactions.map((tx) => (
-              <div
-                key={tx.id}
-                className={`flex items-center justify-between p-3 ${darkMode ? "bg-zinc-800/50" : "bg-gray-50"} rounded-xl`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl ${typeColors[tx.type]}`}>
-                    {typeIcons[tx.type]}
-                  </div>
-                  <div>
-                    <p className={darkMode ? "text-white" : "text-gray-900"}>
-                      {tx.description}
-                    </p>
-                    <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
-                      {tx.date}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p
-                    className={`font-semibold ${tx.type === "withdrawal" ? "text-red-500" : "text-green-500"}`}
-                  >
-                    {tx.type === "withdrawal" ? "-" : "+"}₦
-                    {tx.amount.toLocaleString()}
-                  </p>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      tx.status === "completed"
-                        ? darkMode
-                          ? "bg-green-500/20 text-green-400"
-                          : "bg-green-50 text-green-600"
-                        : tx.status === "pending"
-                          ? darkMode
-                            ? "bg-amber-500/20 text-amber-400"
-                            : "bg-amber-50 text-amber-600"
-                          : darkMode
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-red-50 text-red-600"
-                    }`}
-                  >
-                    {tx.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+          <h3
+            className={`text-lg font-bold ${
+              darkMode ? "text-white" : "text-gray-900"
+            } mb-4`}
+          >
+            Recent Commissions
+          </h3>
 
-      <div
-        className={`${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-gray-200"} border rounded-2xl p-6`}
-      >
-        <h3
-          className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-4`}
-        >
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { icon: Upload, label: "Deposit", color: "green" },
-            { icon: DownloadIcon, label: "Withdraw", color: "red" },
-            { icon: Gift, label: "Referral Bonus", color: "amber" },
-            { icon: Settings, label: "Settings", color: "blue" },
-          ].map((action, i) => (
-            <button
-              key={i}
-              className={`p-4 ${darkMode ? "bg-zinc-800/50 hover:bg-zinc-800" : "bg-gray-50 hover:bg-gray-100"} rounded-xl transition-colors text-center`}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+            </div>
+          ) : wallet?.recentCommissions?.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr
+                    className={`border-b ${
+                      darkMode
+                        ? "border-zinc-800 text-zinc-400"
+                        : "border-gray-200 text-gray-500"
+                    } text-left`}
+                  >
+                    <th className="py-3 px-2">Level</th>
+                    <th className="py-3 px-2">Amount</th>
+                    <th className="py-3 px-2">Base</th>
+                    <th className="py-3 px-2">Rate</th>
+                    <th className="py-3 px-2">Date</th>
+                  </tr>
+                </thead>
+                <tbody
+                  className={`divide-y ${
+                    darkMode ? "divide-zinc-800" : "divide-gray-100"
+                  }`}
+                >
+                  {wallet.recentCommissions.map((c) => (
+                    <tr key={c.id}>
+                      <td
+                        className={`py-3 px-2 font-medium ${
+                          darkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        L{c.level}
+                      </td>
+                      <td className="py-3 px-2 text-green-500 font-semibold">
+                        +₦{c.amount.toLocaleString()}
+                      </td>
+                      <td
+                        className={darkMode ? "text-zinc-400" : "text-gray-600"}
+                      >
+                        ₦{c.baseAmount.toLocaleString()}
+                      </td>
+                      <td
+                        className={darkMode ? "text-zinc-400" : "text-gray-600"}
+                      >
+                        {c.rate}%
+                      </td>
+                      <td
+                        className={darkMode ? "text-zinc-400" : "text-gray-600"}
+                      >
+                        {new Date(c.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div
+              className={`text-center py-12 ${
+                darkMode ? "text-zinc-500" : "text-gray-400"
+              }`}
             >
-              <action.icon
-                className={`w-6 h-6 mx-auto mb-2 text-${action.color}-500`}
-              />
-              <span
-                className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
-              >
-                {action.label}
-              </span>
-            </button>
-          ))}
+              <ArrowDownRight className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No recent commission activity recorded.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
+export default WalletTab;

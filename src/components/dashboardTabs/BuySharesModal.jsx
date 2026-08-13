@@ -2,95 +2,117 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Award,
-  TrendingUp,
-  DollarSign,
   Shield,
   Plus,
-  Filter,
-  Download,
-  CheckCircle,
-  Crown,
   Clock,
-  Percent,
-  Briefcase,
-  Wallet,
-  Activity,
-  Phone,
-  Mail,
-  Send,
-  Edit,
-  Save,
-  BarChart3,
-  Smartphone,
-  ArrowUpRight,
-  ArrowDownRight,
-  Check,
   X,
   Minus,
   Zap,
-  User,
-  Key,
-  AlertTriangle,
-  Copy,
-  Users,
-  Gift,
-  Calendar,
-  ChevronRight,
-  Eye,
-  EyeOff,
-  Upload,
-  Download as DownloadIcon,
-  RefreshCw,
-  Settings,
-  CreditCard,
-  Banknote,
-  PiggyBank,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown,
+  Loader2,
+  ExternalLink,
 } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth.js";
-import { useForm } from "react-hook-form";
-import { shareAPI, walletAPI, referralAPI } from "../../api/utils.api.js";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { shareAPI } from "../../api/auth.api.js";
 import { toast } from "react-hot-toast";
-import { updateProfileSchema } from "../../utils/validation.js";
-import SuccessAlert from "../SuccessAlert.jsx";
-import ErrorAlert from "../ErrorAlert.jsx";
 
-export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
-  const [quantity, setQuantity] = useState(14);
+export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
+  const [quantity, setQuantity] = useState(1);
   const [paymentGateway, setPaymentGateway] = useState("paystack");
   const [referenceCode, setReferenceCode] = useState("");
+  const [shareInfo, setShareInfo] = useState(null);
+
+  // Loading & process states
+  const [fetchingInfo, setFetchingInfo] = useState(false);
+  const [buying, setBuying] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
+
+  // Fetch share market info when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const fetchMarketInfo = async () => {
+        setFetchingInfo(true);
+        try {
+          const { data } = await shareAPI.getInfo();
+          setShareInfo(data.data);
+        } catch (err) {
+          toast.error(
+            err.response?.data?.message || "Failed to fetch market info",
+          );
+        } finally {
+          setFetchingInfo(false);
+        }
+      };
+      fetchMarketInfo();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const sharePrice = 1250;
+  const sharePrice = shareInfo?.pricePerShare || 1250;
   const subtotal = quantity * sharePrice;
   const platformFee = Math.round(subtotal * 0.01);
   const total = subtotal + platformFee;
 
   const handleQuantityChange = (delta) => {
-    const newQuantity = Math.max(1, quantity + delta);
-    setQuantity(newQuantity);
+    setQuantity((prev) => Math.max(1, prev + delta));
   };
 
-  const handleVerifyPayment = () => {
-    if (referenceCode.trim()) {
-      alert("Payment verified successfully!");
+  // Initiate purchase request via API
+  const handleBuy = async () => {
+    setBuying(true);
+    setPaymentData(null);
+    try {
+      const { data } = await shareAPI.buy({
+        quantity: Number(quantity),
+        gateway: paymentGateway,
+      });
+
+      setPaymentData(data.data);
+      toast.success(data.message || "Purchase initiated successfully!");
+
+      if (data.data?.reference) {
+        setReferenceCode(data.data.reference);
+      }
+
+      if (data.data?.authorizationUrl) {
+        window.open(data.data.authorizationUrl, "_blank");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Purchase failed");
+    } finally {
+      setBuying(false);
+    }
+  };
+
+  // Verify Paystack transaction via API
+  const handleVerifyPayment = async () => {
+    if (!referenceCode.trim()) {
+      toast.error("Please enter a reference code");
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      const { data } = await shareAPI.verifyPaystack(referenceCode);
+      toast.success(data.message || "Payment verified successfully!");
+      if (onSuccess) onSuccess();
       onClose();
-    } else {
-      alert("Please enter a reference code");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Verification failed");
+    } finally {
+      setVerifying(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
       />
 
+      {/* Modal Container */}
       <div
         className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl ${
           darkMode
@@ -109,9 +131,11 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
 
         <div className="mb-6">
           <h1
-            className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
+            className={`text-2xl font-bold ${
+              darkMode ? "text-white" : "text-gray-900"
+            }`}
           >
-            Add Shares – Afritek
+            Add Shares – AfriTek
           </h1>
           <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
             Invest in quality companies and grow your portfolio.
@@ -119,27 +143,36 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column: Purchase Controls */}
           <div
-            className={`${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-gray-50 border-gray-200"} border rounded-2xl p-6`}
+            className={`${
+              darkMode
+                ? "bg-zinc-900/50 border-zinc-800"
+                : "bg-gray-50 border-gray-200"
+            } border rounded-2xl p-6`}
           >
             <div className="flex items-center gap-4 mb-6">
               <div>
                 <img
                   src="/afritek-logo-transparent.png"
                   alt="AfriTek Logo"
-                  className="h-12 w-12 rounded-lg flex flex-1 justify-normal"
+                  className="h-12 w-12 rounded-lg flex flex-1 justify-normal object-contain"
                 />
               </div>
               <div>
                 <h3
-                  className={`font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`font-bold ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
-                  Afritek
+                  AfriTek
                 </h3>
                 <p
-                  className={`text-sm ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+                  className={`text-sm ${
+                    darkMode ? "text-zinc-400" : "text-gray-500"
+                  }`}
                 >
-                  N{sharePrice.toFixed(2)}
+                  ₦{sharePrice.toLocaleString()}
                   <span className="text-green-500 ml-2">+4.82% Today</span>
                 </p>
               </div>
@@ -148,64 +181,102 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
             <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-zinc-800/30 rounded-xl">
               <div>
                 <p
-                  className={`text-xs ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+                  className={`text-xs ${
+                    darkMode ? "text-zinc-400" : "text-gray-500"
+                  }`}
                 >
-                  Day High / Low
+                  Remaining Shares
                 </p>
                 <p
-                  className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`text-sm font-semibold ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
-                  N{sharePrice + 10}.00 / N{sharePrice - 40}.00
+                  {fetchingInfo
+                    ? "Loading..."
+                    : (shareInfo?.remainingShares ?? 0).toLocaleString()}
                 </p>
               </div>
               <div>
                 <p
-                  className={`text-xs ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+                  className={`text-xs ${
+                    darkMode ? "text-zinc-400" : "text-gray-500"
+                  }`}
                 >
-                  52W High / Low
+                  Sold Shares
                 </p>
                 <p
-                  className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`text-sm font-semibold ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
-                  N{sharePrice + 100}.00 / N{sharePrice - 360}.00
+                  {fetchingInfo
+                    ? "Loading..."
+                    : (shareInfo?.soldShares ?? 0).toLocaleString()}
                 </p>
               </div>
             </div>
 
+            {/* Quantity Selector */}
             <div className="mb-6">
               <label
-                className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-gray-700"} block mb-2`}
+                className={`text-sm font-medium ${
+                  darkMode ? "text-zinc-300" : "text-gray-700"
+                } block mb-2`}
               >
                 Quantity
               </label>
               <div className="flex items-center gap-4">
                 <button
+                  type="button"
                   onClick={() => handleQuantityChange(-1)}
-                  className={`p-2 rounded-xl ${darkMode ? "bg-zinc-800 hover:bg-zinc-700" : "bg-gray-200 hover:bg-gray-300"} transition-colors`}
+                  className={`p-2 rounded-xl ${
+                    darkMode
+                      ? "bg-zinc-800 hover:bg-zinc-700"
+                      : "bg-gray-200 hover:bg-gray-300"
+                  } transition-colors`}
                 >
                   <Minus
-                    className={`w-5 h-5 ${darkMode ? "text-white" : "text-gray-700"}`}
+                    className={`w-5 h-5 ${
+                      darkMode ? "text-white" : "text-gray-700"
+                    }`}
                   />
                 </button>
-                <span
-                  className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"} w-16 text-center`}
-                >
-                  {quantity}
-                </span>
+                <input
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) =>
+                    setQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                  }
+                  className={`text-2xl font-bold ${
+                    darkMode ? "text-white bg-transparent" : "text-gray-900"
+                  } w-20 text-center outline-none border-b border-zinc-700 focus:border-amber-400`}
+                />
                 <button
+                  type="button"
                   onClick={() => handleQuantityChange(1)}
-                  className={`p-2 rounded-xl ${darkMode ? "bg-zinc-800 hover:bg-zinc-700" : "bg-gray-200 hover:bg-gray-300"} transition-colors`}
+                  className={`p-2 rounded-xl ${
+                    darkMode
+                      ? "bg-zinc-800 hover:bg-zinc-700"
+                      : "bg-gray-200 hover:bg-gray-300"
+                  } transition-colors`}
                 >
                   <Plus
-                    className={`w-5 h-5 ${darkMode ? "text-white" : "text-gray-700"}`}
+                    className={`w-5 h-5 ${
+                      darkMode ? "text-white" : "text-gray-700"
+                    }`}
                   />
                 </button>
               </div>
             </div>
 
+            {/* Payment Gateway */}
             <div className="mb-6">
               <label
-                className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-gray-700"} block mb-2`}
+                className={`text-sm font-medium ${
+                  darkMode ? "text-zinc-300" : "text-gray-700"
+                } block mb-2`}
               >
                 Payment Gateway
               </label>
@@ -219,26 +290,41 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
                 } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
               >
                 <option value="paystack">Paystack</option>
-                <option value="flutterwave">Flutterwave</option>
                 <option value="stripe">Stripe</option>
+                <option value="paypal">PayPal</option>
               </select>
             </div>
 
             <div className="flex items-center justify-between py-4 border-t border-zinc-800">
               <span
-                className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
+                className={`text-lg font-bold ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
               >
                 Total
               </span>
               <span
-                className={`text-2xl font-bold ${darkMode ? "text-amber-400" : "text-amber-600"}`}
+                className={`text-2xl font-bold ${
+                  darkMode ? "text-amber-400" : "text-amber-600"
+                }`}
               >
-                N{total.toLocaleString()}
+                ₦{total.toLocaleString()}
               </span>
             </div>
 
-            <button className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2">
-              Review Purchase →
+            <button
+              onClick={handleBuy}
+              disabled={buying}
+              className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {buying ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Initiating...
+                </>
+              ) : (
+                "Review Purchase →"
+              )}
             </button>
 
             <div className="mt-4 space-y-2">
@@ -257,11 +343,18 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
             </div>
           </div>
 
+          {/* Right Column: Order Summary & Payment Verification */}
           <div
-            className={`${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-gray-50 border-gray-200"} border rounded-2xl p-6`}
+            className={`${
+              darkMode
+                ? "bg-zinc-900/50 border-zinc-800"
+                : "bg-gray-50 border-gray-200"
+            } border rounded-2xl p-6`}
           >
             <h3
-              className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-4`}
+              className={`text-lg font-bold ${
+                darkMode ? "text-white" : "text-gray-900"
+              } mb-4`}
             >
               Purchase Summary
             </h3>
@@ -272,9 +365,11 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
                   Share Name
                 </span>
                 <span
-                  className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`font-medium ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
-                  Afritek
+                  AfriTek
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-zinc-800">
@@ -282,9 +377,11 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
                   Current Price
                 </span>
                 <span
-                  className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`font-medium ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
-                  N{sharePrice.toFixed(2)}
+                  ₦{sharePrice.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-zinc-800">
@@ -292,7 +389,9 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
                   Quantity
                 </span>
                 <span
-                  className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`font-medium ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
                   {quantity}
                 </span>
@@ -302,9 +401,11 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
                   Subtotal
                 </span>
                 <span
-                  className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`font-medium ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
-                  N{subtotal.toLocaleString()}
+                  ₦{subtotal.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-zinc-800">
@@ -312,35 +413,76 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
                   Platform Fee (1%)
                 </span>
                 <span
-                  className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`font-medium ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
-                  N{platformFee.toLocaleString()}
+                  ₦{platformFee.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between py-2">
                 <span
-                  className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`text-lg font-bold ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
                   Estimated Total
                 </span>
                 <span
-                  className={`text-xl font-bold ${darkMode ? "text-amber-400" : "text-amber-600"}`}
+                  className={`text-xl font-bold ${
+                    darkMode ? "text-amber-400" : "text-amber-600"
+                  }`}
                 >
-                  N{total.toLocaleString()}
+                  ₦{total.toLocaleString()}
                 </span>
               </div>
             </div>
 
+            {/* Payment Link Banner */}
+            {paymentData && (
+              <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <p className="text-xs text-amber-400 font-semibold mb-1">
+                  Payment Initiated
+                </p>
+                <p className="text-xs text-zinc-400 mb-2">
+                  Reference:{" "}
+                  <code className="text-white">{paymentData.reference}</code>
+                </p>
+                {paymentData.authorizationUrl && (
+                  <a
+                    href={paymentData.authorizationUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-amber-400 hover:underline"
+                  >
+                    Complete Payment on Gateway{" "}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {paymentData.clientSecret && (
+                  <p className="text-xs text-zinc-400 mt-1 break-all">
+                    Stripe Client Secret:{" "}
+                    <code>{paymentData.clientSecret}</code>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Verification Section */}
             <div className="mt-6 pt-6 border-t border-zinc-800">
               <h4
-                className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-900"} mb-2`}
+                className={`text-sm font-semibold ${
+                  darkMode ? "text-white" : "text-gray-900"
+                } mb-2`}
               >
                 Verify Paystack Payment
               </h4>
               <p
-                className={`text-xs ${darkMode ? "text-zinc-400" : "text-gray-500"} mb-3`}
+                className={`text-xs ${
+                  darkMode ? "text-zinc-400" : "text-gray-500"
+                } mb-3`}
               >
-                If you've already completed the payment via Paystack, enter your
+                If you've completed the payment via Paystack, enter your
                 reference code below.
               </p>
               <div className="flex gap-3">
@@ -348,7 +490,7 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
                   type="text"
                   value={referenceCode}
                   onChange={(e) => setReferenceCode(e.target.value)}
-                  placeholder="e.g. T473957283"
+                  placeholder="e.g. SHR_ABC123"
                   className={`flex-1 ${
                     darkMode
                       ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
@@ -357,9 +499,14 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
                 />
                 <button
                   onClick={handleVerifyPayment}
-                  className="px-6 py-3 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition-colors"
+                  disabled={verifying}
+                  className="px-6 py-3 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
-                  Verify
+                  {verifying ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Verify"
+                  )}
                 </button>
               </div>
             </div>
@@ -369,3 +516,5 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode }) => {
     </div>
   );
 };
+
+export default BuySharesModal;

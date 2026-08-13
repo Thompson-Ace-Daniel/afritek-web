@@ -51,7 +51,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth.js";
 import { useForm } from "react-hook-form";
-import { shareAPI, walletAPI, referralAPI } from "../../api/utils.api.js";
+import { shareAPI, walletAPI, referralAPI } from "../../api/auth.api.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import { updateProfileSchema } from "../../utils/validation.js";
