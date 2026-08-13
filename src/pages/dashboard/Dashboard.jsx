@@ -7,6 +7,7 @@ import {
   User,
   LogOut,
   Menu,
+  X,
   Sun,
   Moon,
   HelpCircle,
@@ -26,8 +27,6 @@ import {
 import afriTech from "../../assets/afritek-logo.jpg";
 import {
   DashboardTab,
-  PortfolioTab,
-  DividendsTab,
   SupportTab,
   ProfileTab,
   BuySharesModal,
@@ -52,8 +51,6 @@ export default function Dashboard() {
     { id: "wallet", label: "Wallet", icon: Wallet },
     { id: "withdrawals", label: "Withdrawals", icon: ArrowUpRight },
     { id: "referrals", label: "Referrals", icon: Users },
-    { id: "portfolio", label: "Portfolio", icon: Briefcase },
-    { id: "dividends", label: "Dividends", icon: DollarSign },
     { id: "support", label: "Support", icon: HelpCircle },
     { id: "profile", label: "Profile", icon: User },
   ];
@@ -80,6 +77,15 @@ export default function Dashboard() {
 
   return (
     <div className={`min-h-screen ${darkMode ? "bg-[#030009]" : "bg-gray-50"}`}>
+      {/* ====== MOBILE BACKDROP OVERLAY ====== */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close sidebar overlay"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+        />
+      )}
+
       {/* ====== SIDEBAR ====== */}
       <aside
         className={`fixed top-0 left-0 h-full w-64 ${
@@ -91,28 +97,49 @@ export default function Dashboard() {
         } lg:translate-x-0`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
+          {/* Header & Logo */}
           <div
-            className={`flex items-center gap-3 p-6 ${darkMode ? "border-b border-zinc-800" : "border-b border-gray-200"}`}
+            className={`flex items-center justify-between p-6 ${
+              darkMode ? "border-b border-zinc-800" : "border-b border-gray-200"
+            }`}
           >
-            <div className="text-black rounded-lg border-2 w-fit h-fit border-amber-400">
-              <img src={afriTech} alt="" className="w-12 h-10 rounded-md" />
+            <div className="flex items-center gap-3">
+              <div className="text-black rounded-lg border-2 w-fit h-fit border-amber-400">
+                <img src={afriTech} alt="" className="w-12 h-10 rounded-md" />
+              </div>
+              <div>
+                <span
+                  className={`font-bold text-lg ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  AfriTek
+                </span>
+                <span className="block text-[10px] text-amber-500 uppercase tracking-wider">
+                  Investor Portal
+                </span>
+              </div>
             </div>
-            <div>
-              <span
-                className={`font-bold text-lg ${darkMode ? "text-white" : "text-gray-900"}`}
-              >
-                AfriTek
-              </span>
-              <span className="block text-[10px] text-amber-500 uppercase tracking-wider">
-                Investor Portal
-              </span>
-            </div>
+
+            {/* Mobile Close Button */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className={`p-1.5 rounded-lg lg:hidden ${
+                darkMode
+                  ? "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+              } transition-colors`}
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* User Info */}
           <div
-            className={`p-4 ${darkMode ? "border-b border-zinc-800" : "border-b border-gray-200"}`}
+            className={`p-4 ${
+              darkMode ? "border-b border-zinc-800" : "border-b border-gray-200"
+            }`}
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold">
@@ -120,7 +147,9 @@ export default function Dashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <p
-                  className={`text-sm font-semibold truncate ${darkMode ? "text-white" : "text-gray-900"}`}
+                  className={`text-sm font-semibold truncate ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
                 >
                   {user?.fullName || "User"}
                 </p>
@@ -157,7 +186,9 @@ export default function Dashboard() {
                   <span className="font-medium text-sm">{tab.label}</span>
                   {isActive && (
                     <div
-                      className={`ml-auto w-1.5 h-8 rounded-full ${darkMode ? "bg-amber-400" : "bg-amber-500"}`}
+                      className={`ml-auto w-1.5 h-8 rounded-full ${
+                        darkMode ? "bg-amber-400" : "bg-amber-500"
+                      }`}
                     />
                   )}
                 </button>
@@ -165,9 +196,11 @@ export default function Dashboard() {
             })}
           </nav>
 
-          {/* Bottom */}
+          {/* Bottom Controls */}
           <div
-            className={`p-4 ${darkMode ? "border-t border-zinc-800" : "border-t border-gray-200"} space-y-3`}
+            className={`p-4 ${
+              darkMode ? "border-t border-zinc-800" : "border-t border-gray-200"
+            } space-y-3`}
           >
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -212,7 +245,10 @@ export default function Dashboard() {
         <div className="flex items-center justify-between p-4">
           <button
             onClick={() => setSidebarOpen(true)}
-            className={`p-2 rounded-xl ${darkMode ? "hover:bg-zinc-800" : "hover:bg-gray-100"} transition-colors`}
+            className={`p-2 rounded-xl ${
+              darkMode ? "hover:bg-zinc-800" : "hover:bg-gray-100"
+            } transition-colors`}
+            aria-label="Open menu"
           >
             <Menu className={darkMode ? "text-white" : "text-gray-900"} />
           </button>
@@ -223,14 +259,19 @@ export default function Dashboard() {
               className="h-8 w-8"
             />
             <span
-              className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}
+              className={`font-bold text-sm ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
             >
               AfriTek
             </span>
           </div>
           <button
             onClick={handleLogout}
-            className={`p-2 rounded-xl ${darkMode ? "hover:bg-zinc-800" : "hover:bg-gray-100"} transition-colors`}
+            className={`p-2 rounded-xl ${
+              darkMode ? "hover:bg-zinc-800" : "hover:bg-gray-100"
+            } transition-colors`}
+            aria-label="Logout"
           >
             <LogOut className={darkMode ? "text-red-400" : "text-red-500"} />
           </button>
@@ -255,12 +296,6 @@ export default function Dashboard() {
           )}
           {currentTab === "referrals" && (
             <ReferralTab darkMode={darkMode} user={user} />
-          )}
-          {currentTab === "portfolio" && (
-            <PortfolioTab darkMode={darkMode} user={user} />
-          )}
-          {currentTab === "dividends" && (
-            <DividendsTab darkMode={darkMode} user={user} />
           )}
           {currentTab === "support" && (
             <SupportTab darkMode={darkMode} user={user} />

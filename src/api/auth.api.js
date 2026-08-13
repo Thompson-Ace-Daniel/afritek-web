@@ -52,7 +52,7 @@ export const authApi = {
   },
 
   deleteAccount() {
-    return api.delete("/auth/delete-account").then((res) => res.data);
+    return api.delete("/auth/account");
   },
 };
 

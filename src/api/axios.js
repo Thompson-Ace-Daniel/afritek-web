@@ -83,7 +83,7 @@ api.interceptors.response.use(
         tokenService.clear();
         storage.clearAll();
         if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname.replace(/^\//, ''))}`;
         }
         return Promise.reject({
           message: 'Session expired. Please log in again.',
@@ -123,7 +123,7 @@ api.interceptors.response.use(
         tokenService.clear();
         storage.clearAll();
         if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname.replace(/^\//, ''))}`;
         }
         return Promise.reject({
           message: 'Session expired. Please log in again.',
