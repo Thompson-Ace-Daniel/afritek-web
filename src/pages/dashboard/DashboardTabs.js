@@ -7,7 +7,7 @@ import { BuySharesTab } from "@/components/dashboardTabs/BuySharesTab.jsx";
 import { DashboardTab } from "@/components/dashboardTabs/DashboardTab.jsx";
 import { WalletTab } from "@/components/dashboardTabs/WalletTab.jsx";
 
-export { DashboardTab };
+export { DashboardTa };
 export { BuySharesTab };
 export { BuySharesModal };
 export { WalletTab };
