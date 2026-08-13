@@ -516,5 +516,3 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
     </div>
   );
 };
-
-export default WithdrawalsTab;

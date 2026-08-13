@@ -456,5 +456,3 @@ export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
     </div>
   );
 };
-
-export default DashboardTab;

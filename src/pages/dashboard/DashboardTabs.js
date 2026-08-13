@@ -1,5 +1,5 @@
 import { ProfileTab } from "@/components/dashboardTabs/ProfileTab.jsx";
-import SupportTab from "../../components/dashboardTabs/SupportTab.jsx";
+import { SupportTab } from "@/components/dashboardTabs/SupportTab.jsx";
 import { ReferralTab } from "@/components/dashboardTabs/ReferralTab.jsx";
 import { WithdrawalsTab } from "@/components/dashboardTabs/WithdrawalTab.jsx";
 import { BuySharesModal } from "@/components/dashboardTabs/BuySharesModal.jsx";

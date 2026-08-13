@@ -396,5 +396,3 @@ export const SupportTab = ({ darkMode, user }) => {
     </div>
   );
 };
-
-export default SupportTab;

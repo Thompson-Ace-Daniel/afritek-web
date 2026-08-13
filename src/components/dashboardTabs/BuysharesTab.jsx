@@ -392,5 +392,3 @@ export const BuySharesTab = ({ darkMode }) => {
     </div>
   );
 };
-
-export default BuySharesTab;

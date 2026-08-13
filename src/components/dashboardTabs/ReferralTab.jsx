@@ -478,5 +478,3 @@ export const ReferralTab = ({ darkMode }) => {
     </div>
   );
 };
-
-export default ReferralTab;

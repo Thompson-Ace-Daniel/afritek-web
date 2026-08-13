@@ -516,5 +516,3 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
     </div>
   );
 };
-
-export default BuySharesModal;

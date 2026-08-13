@@ -351,4 +351,3 @@ export const WalletTab = ({ darkMode }) => {
   );
 };
 
-export default WalletTab;
