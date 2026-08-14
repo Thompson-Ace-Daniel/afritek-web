@@ -29,14 +29,12 @@ export default function Register() {
   const [serverError, setServerError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Sync refCode if searchParams loads after initial mount
   useEffect(() => {
     if (refCode) {
       setForm((prev) => ({ ...prev, referralCode: refCode }));
     }
   }, [refCode]);
 
-  // Resolve referrer name whenever referral code exists
   useEffect(() => {
     if (refCode) {
       referralAPI
@@ -62,20 +60,12 @@ export default function Register() {
     e.preventDefault();
     setServerError(null);
 
-    // Basic confirm password check
     if (form.password !== form.confirmPassword) {
       setServerError({ message: "Passwords do not match." });
       return;
     }
 
     setSubmitting(true);
-
-    const payload = {
-      fullName: form.fullName.trim(),
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-      role: "user",
-    };
 
     const trimmedPhone = form.phone?.trim();
     if (trimmedPhone) payload.phone = trimmedPhone;
@@ -84,6 +74,9 @@ export default function Register() {
     if (trimmedRefCode) payload.referralCode = trimmedRefCode;
 
     try {
+      const payload = { ...form };
+      if (!payload.referralCode) delete payload.referralCode;
+      if (!payload.phone) delete payload.phone;
       await registerUser(payload);
       toast.success("Account created! Please sign in.");
       navigate(ROUTES.LOGIN, { replace: true });
