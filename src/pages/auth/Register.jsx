@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import Alert from "@/components/SuccessAlert";
+import { Mail, User, Phone, Tag } from "lucide-react";
+import toast from "react-hot-toast";
 import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../utils/constants";
 import { referralAPI } from "../../api/auth.api.js";
+import Input from "../../components/Input";
+import PasswordInput from "../../components/PasswordInput";
+import Button from "../../components/Button";
 import ErrorAlert from "../../components/ErrorAlert";
 
-const Register = () => {
-  const { signup } = useAuth();
+export default function Register() {
+  const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get("ref") || "";
@@ -15,131 +19,187 @@ const Register = () => {
   const [form, setForm] = useState({
     fullName: "",
     email: "",
-    password: "",
     phone: "",
+    password: "",
+    confirmPassword: "",
     referralCode: refCode,
   });
+
   const [referrerName, setReferrerName] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (refCode) {
+      setForm((prev) => ({ ...prev, referralCode: refCode }));
+    }
+  }, [refCode]);
 
   useEffect(() => {
     if (refCode) {
       referralAPI
         .resolve(refCode)
         .then((res) => {
-          if (res.data.data.valid) {
+          if (res.data?.data?.valid) {
             setReferrerName(res.data.data.referrer.fullName);
+          } else {
+            setReferrerName("");
           }
         })
-        .catch(() => {});
+        .catch(() => setReferrerName(""));
+    } else {
+      setReferrerName("");
     }
   }, [refCode]);
 
-  const handleSubmit = async (e) => {
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setServerError(null);
+
+    if (form.password !== form.confirmPassword) {
+      setServerError({ message: "Passwords do not match." });
+      return;
+    }
+
+
+    setSubmitting(true);
+
+    const payload = { ...form };
+
+    const trimmedPhone = form.phone?.trim();
+    if (trimmedPhone) payload.phone = trimmedPhone;
+
+    const trimmedRefCode = form.referralCode?.trim() || refCode.trim();
+    if (trimmedRefCode) payload.referralCode = trimmedRefCode;
+
     try {
-      const payload = { ...form };
       if (!payload.referralCode) delete payload.referralCode;
       if (!payload.phone) delete payload.phone;
-      await signup(payload);
-      navigate("/dashboard");
+      await registerUser(payload);
+      toast.success("Account created! Please sign in.");
+      navigate(ROUTES.LOGIN, { replace: true });
     } catch (err) {
-      const msg =
+      const message =
         err.response?.data?.message ||
         err.response?.data?.errors?.[0]?.message ||
         err.message ||
-        "Signup failed";
-      setError(msg);
+        "Registration failed. Please try again.";
+
+      setServerError({
+        message,
+        errors: err.response?.data?.errors || err.errors,
+      });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
-      <div className="card w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-2 text-center">Create Account</h1>
-        {referrerName && (
-          <p className="text-center text-sm text-green-600 mb-4">
-            You were invited by <strong>{referrerName}</strong>
-          </p>
-        )}
-        <ErrorAlert type="error" message={error} onClose={() => setError("")} />
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="label">Full Name *</label>
-            <input
-              type="text"
-              className="input"
-              value={form.fullName}
-              onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-              required
-              minLength={2}
-            />
-          </div>
-          <div>
-            <label className="label">Email *</label>
-            <input
-              type="email"
-              className="input"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label className="label">Password *</label>
-            <input
-              type="password"
-              className="input"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-              minLength={8}
-              placeholder="Min 8 chars, upper, lower, number, special"
-            />
-          </div>
-          <div>
-            <label className="label">Phone (optional)</label>
-            <input
-              type="tel"
-              className="input"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="+2348012345678"
-            />
-          </div>
-          <div>
-            <label className="label">Referral Code (optional)</label>
-            <input
-              type="text"
-              className="input"
-              value={form.referralCode}
-              onChange={(e) =>
-                setForm({ ...form, referralCode: e.target.value })
-              }
-            />
-          </div>
-          <button
-            type="submit"
-            className="btn btn-primary w-full"
-            disabled={loading}
-          >
-            {loading ? "Creating account..." : "Sign Up"}
-          </button>
-        </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
-            Login
-          </Link>
+    <div className="space-y-6">
+      <div className="space-y-1 text-center sm:text-left">
+        <h1 className="text-2xl font-bold tracking-tight text-white">
+          Create account
+        </h1>
+        <p className="text-sm text-slate-400">
+          Get started with your free account
         </p>
       </div>
+
+      {referrerName && (
+        <div className="rounded-md bg-emerald-500/10 p-3 text-center text-sm text-emerald-400 border border-emerald-500/20">
+          You were invited by <strong>{referrerName}</strong>
+        </div>
+      )}
+
+      {serverError && (
+        <ErrorAlert
+          message={serverError.message}
+          errors={serverError.errors}
+          onClose={() => setServerError(null)}
+        />
+      )}
+
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <Input
+          label="Full name"
+          autoComplete="name"
+          required
+          leftIcon={<User className="h-4 w-4" />}
+          value={form.fullName}
+          onChange={handleChange("fullName")}
+        />
+
+        <Input
+          label="Email"
+          type="email"
+          autoComplete="email"
+          required
+          leftIcon={<Mail className="h-4 w-4" />}
+          value={form.email}
+          onChange={handleChange("email")}
+        />
+
+        <Input
+          label="Phone"
+          type="tel"
+          autoComplete="tel"
+          leftIcon={<Phone className="h-4 w-4" />}
+          hint="Optional. Use E.164 format, e.g. +12345678901"
+          value={form.phone}
+          onChange={handleChange("phone")}
+        />
+
+        <PasswordInput
+          label="Password"
+          autoComplete="new-password"
+          required
+          hint="Min 8 chars, upper, lower, number & special character"
+          value={form.password}
+          onChange={handleChange("password")}
+        />
+
+        <PasswordInput
+          label="Confirm password"
+          autoComplete="new-password"
+          required
+          value={form.confirmPassword}
+          onChange={handleChange("confirmPassword")}
+        />
+
+        <Input
+          label="Referral code"
+          type="text"
+          leftIcon={<Tag className="h-4 w-4" />}
+          hint="Optional"
+          value={form.referralCode}
+          onChange={handleChange("referralCode")}
+        />
+
+        <p className="text-center my-2 text-sm text-neutral-300">
+          By continuing you agree to our{" "}
+          <a className="underline" href="#">
+            Terms & Conditions
+          </a>
+        </p>
+
+        <Button type="submit" fullWidth loading={submitting} size="lg">
+          Create account
+        </Button>
+      </form>
+
+      <p className="text-center text-sm text-slate-400">
+        Already have an account?{" "}
+        <Link
+          to={ROUTES.LOGIN}
+          className="font-medium text-amber-400 hover:text-amber-300 focus:outline-none focus-visible:underline"
+        >
+          Sign in
+        </Link>
+      </p>
     </div>
   );
-};
-
-export default Register;
+}

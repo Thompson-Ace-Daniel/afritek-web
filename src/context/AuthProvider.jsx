@@ -145,6 +145,7 @@ export function AuthProvider({ children }) {
       fullName: payload.fullName,
       phone: payload.phone || undefined,
       role: payload.role || "user",
+      referralCode: payload.referralCode || null,
     });
     return response;
   }, []);
