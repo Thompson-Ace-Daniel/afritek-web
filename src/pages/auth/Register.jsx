@@ -44,12 +44,10 @@ export default function Register() {
   // Watch the actual referral code field value
   const watchedRefCode = watch("referralCode");
 
-  // Sync refCode from query params and resolve referrer
   useEffect(() => {
     const codeToResolve = refCode || watchedRefCode;
 
     if (refCode) {
-      // Force set the value in react-hook-form state
       setValue("referralCode", refCode, {
         shouldValidate: true,
         shouldDirty: true,
@@ -60,7 +58,6 @@ export default function Register() {
       referralAPI
         .resolve(codeToResolve)
         .then((res) => {
-          // Fixed path matching second component: res.data.data.valid
           if (res.data?.data?.valid) {
             setReferrerName(res.data.data.referrer.fullName);
           } else {
@@ -82,6 +79,7 @@ export default function Register() {
       email: data.email.trim().toLowerCase(),
       password: data.password,
       role: "user",
+      referralCode: refCode,
     };
 
     const trimmedPhone = data.phone?.trim();
