@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, User, Phone, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../hooks/useAuth";
-import { registerSchema } from "../../utils/validation";
 import { ROUTES } from "../../utils/constants";
 import { referralAPI } from "../../api/auth.api.js";
 import Input from "../../components/Input";
@@ -17,54 +14,33 @@ export default function Register() {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const urlRefCode = searchParams.get("ref") || "";
+  const refCode = searchParams.get("ref") || "";
 
-  const [serverError, setServerError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [referrerName, setReferrerName] = useState("");
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      fullName: "",
-      email: "",
-      phone: "",
-      password: "",
-      confirmPassword: "",
-      referralCode: urlRefCode,
-    },
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    referralCode: refCode,
   });
 
-  const watchedRefCode = watch("referralCode");
+  const [referrerName, setReferrerName] = useState("");
+  const [serverError, setServerError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Synchronize URL param into form field state once URL param resolves
+  // Sync refCode if searchParams loads after initial mount
   useEffect(() => {
-    if (urlRefCode) {
-      setValue("referralCode", urlRefCode, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
+    if (refCode) {
+      setForm((prev) => ({ ...prev, referralCode: refCode }));
     }
-  }, [urlRefCode, setValue]);
+  }, [refCode]);
 
-  // Resolve referrer name when the effective code changes (URL or typed)
+  // Resolve referrer name whenever referral code exists
   useEffect(() => {
-    const codeToResolve = watchedRefCode?.trim() || urlRefCode;
-
-    if (!codeToResolve) {
-      setReferrerName("");
-      return;
-    }
-
-    const timer = setTimeout(() => {
+    if (refCode) {
       referralAPI
-        .resolve(codeToResolve)
+        .resolve(refCode)
         .then((res) => {
           if (res.data?.data?.valid) {
             setReferrerName(res.data.data.referrer.fullName);
@@ -73,32 +49,39 @@ export default function Register() {
           }
         })
         .catch(() => setReferrerName(""));
-    }, 300); // 300ms debounce for typed codes
+    } else {
+      setReferrerName("");
+    }
+  }, [refCode]);
 
-    return () => clearTimeout(timer);
-  }, [watchedRefCode, urlRefCode]);
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (e) => {
+    e.preventDefault();
     setServerError(null);
+
+    // Basic confirm password check
+    if (form.password !== form.confirmPassword) {
+      setServerError({ message: "Passwords do not match." });
+      return;
+    }
+
     setSubmitting(true);
 
-    // Resolve code with priority: manually filled input field -> URL parameter
-    const effectiveRefCode = data.referralCode?.trim() || urlRefCode.trim();
-
     const payload = {
-      fullName: data.fullName.trim(),
-      email: data.email.trim().toLowerCase(),
-      password: data.password,
+      fullName: form.fullName.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
       role: "user",
     };
 
-    if (data.phone?.trim()) {
-      payload.phone = data.phone.trim();
-    }
+    const trimmedPhone = form.phone?.trim();
+    if (trimmedPhone) payload.phone = trimmedPhone;
 
-    if (effectiveRefCode) {
-      payload.referralCode = effectiveRefCode;
-    }
+    const trimmedRefCode = form.referralCode?.trim() || refCode.trim();
+    if (trimmedRefCode) payload.referralCode = trimmedRefCode;
 
     try {
       await registerUser(payload);
@@ -145,14 +128,14 @@ export default function Register() {
         />
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <Input
           label="Full name"
           autoComplete="name"
           required
           leftIcon={<User className="h-4 w-4" />}
-          error={errors.fullName?.message}
-          {...register("fullName")}
+          value={form.fullName}
+          onChange={handleChange("fullName")}
         />
 
         <Input
@@ -161,8 +144,8 @@ export default function Register() {
           autoComplete="email"
           required
           leftIcon={<Mail className="h-4 w-4" />}
-          error={errors.email?.message}
-          {...register("email")}
+          value={form.email}
+          onChange={handleChange("email")}
         />
 
         <Input
@@ -171,8 +154,8 @@ export default function Register() {
           autoComplete="tel"
           leftIcon={<Phone className="h-4 w-4" />}
           hint="Optional. Use E.164 format, e.g. +12345678901"
-          error={errors.phone?.message}
-          {...register("phone")}
+          value={form.phone}
+          onChange={handleChange("phone")}
         />
 
         <PasswordInput
@@ -180,16 +163,16 @@ export default function Register() {
           autoComplete="new-password"
           required
           hint="Min 8 chars, upper, lower, number & special character"
-          error={errors.password?.message}
-          {...register("password")}
+          value={form.password}
+          onChange={handleChange("password")}
         />
 
         <PasswordInput
           label="Confirm password"
           autoComplete="new-password"
           required
-          error={errors.confirmPassword?.message}
-          {...register("confirmPassword")}
+          value={form.confirmPassword}
+          onChange={handleChange("confirmPassword")}
         />
 
         <Input
@@ -197,8 +180,8 @@ export default function Register() {
           type="text"
           leftIcon={<Tag className="h-4 w-4" />}
           hint="Optional"
-          error={errors.referralCode?.message}
-          {...register("referralCode")}
+          value={form.referralCode}
+          onChange={handleChange("referralCode")}
         />
 
         <p className="text-center my-2 text-sm text-neutral-300">
