@@ -33,3 +33,22 @@
   font-optical-sizing: auto;
   font-style: normal;
 }
+
+/* Hide Google Translate top toolbar banner */
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+body {
+  top: 0px !important;
+}
+
+/* Hide the powered-by logo branding inside the dropdown if desired */
+.goog-logo-link,
+.goog-te-gadget span {
+  display: none !important;
+}
+
+.goog-te-gadget {
+  color: transparent !important;
+}

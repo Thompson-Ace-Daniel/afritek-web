@@ -35,6 +35,7 @@ import {
   ReferralTab,
 } from "./DashboardTabs";
 import { useAuth } from "../../hooks/useAuth";
+import GoogleTranslate from "@/components/GoogleTranslate";
 
 export default function Dashboard() {
   const [currentTab, setCurrentTab] = useState(
@@ -116,7 +117,7 @@ export default function Dashboard() {
                   AfriTek
                 </span>
                 <span className="block text-[10px] text-amber-500 uppercase tracking-wider">
-                  Investor Portal
+                  Investment Platform
                 </span>
               </div>
             </div>
@@ -202,6 +203,7 @@ export default function Dashboard() {
               darkMode ? "border-t border-zinc-800" : "border-t border-gray-200"
             } space-y-3`}
           >
+            <GoogleTranslate />
             <button
               onClick={() => setDarkMode(!darkMode)}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all ${
