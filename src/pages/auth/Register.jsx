@@ -17,7 +17,7 @@ export default function Register() {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const refCode = searchParams.get("ref") || "";
+  const urlRefCode = searchParams.get("ref") || "";
 
   const [serverError, setServerError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -37,24 +37,32 @@ export default function Register() {
       phone: "",
       password: "",
       confirmPassword: "",
-      referralCode: refCode,
+      referralCode: urlRefCode,
     },
   });
 
-  // Watch the actual referral code field value
   const watchedRefCode = watch("referralCode");
 
+  // Synchronize URL param into form field state once URL param resolves
   useEffect(() => {
-    const codeToResolve = refCode || watchedRefCode;
-
-    if (refCode) {
-      setValue("referralCode", refCode, {
+    if (urlRefCode) {
+      setValue("referralCode", urlRefCode, {
         shouldValidate: true,
         shouldDirty: true,
       });
     }
+  }, [urlRefCode, setValue]);
 
-    if (codeToResolve) {
+  // Resolve referrer name when the effective code changes (URL or typed)
+  useEffect(() => {
+    const codeToResolve = watchedRefCode?.trim() || urlRefCode;
+
+    if (!codeToResolve) {
+      setReferrerName("");
+      return;
+    }
+
+    const timer = setTimeout(() => {
       referralAPI
         .resolve(codeToResolve)
         .then((res) => {
@@ -65,28 +73,32 @@ export default function Register() {
           }
         })
         .catch(() => setReferrerName(""));
-    } else {
-      setReferrerName("");
-    }
-  }, [refCode, setValue]);
+    }, 300); // 300ms debounce for typed codes
+
+    return () => clearTimeout(timer);
+  }, [watchedRefCode, urlRefCode]);
 
   const onSubmit = async (data) => {
     setServerError(null);
     setSubmitting(true);
+
+    // Resolve code with priority: manually filled input field -> URL parameter
+    const effectiveRefCode = data.referralCode?.trim() || urlRefCode.trim();
 
     const payload = {
       fullName: data.fullName.trim(),
       email: data.email.trim().toLowerCase(),
       password: data.password,
       role: "user",
-      referralCode: refCode,
     };
 
-    const trimmedPhone = data.phone?.trim();
-    if (trimmedPhone) payload.phone = trimmedPhone;
+    if (data.phone?.trim()) {
+      payload.phone = data.phone.trim();
+    }
 
-    const trimmedRefCode = data.referralCode?.trim();
-    if (trimmedRefCode) payload.referralCode = trimmedRefCode;
+    if (effectiveRefCode) {
+      payload.referralCode = effectiveRefCode;
+    }
 
     try {
       await registerUser(payload);
