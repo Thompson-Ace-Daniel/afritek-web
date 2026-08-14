@@ -2,55 +2,58 @@ import { useEffect } from "react";
 
 export default function GoogleTranslate() {
   useEffect(() => {
-    // Function to mount the widget
-    const initTranslate = () => {
-      if (window.google?.translate?.TranslateElement) {
+    // Prevent duplicate script loading
+    const SCRIPT_ID = "google-translate-script";
+
+    // Google Translate callback must be globally accessible
+    window.googleTranslateElementInit = () => {
+      if (
+        window.google?.translate?.TranslateElement &&
+        document.getElementById("google_translate_element")
+      ) {
+        // Prevent initializing more than once
+        if (document.querySelector(".goog-te-combo")) return;
+
         new window.google.translate.TranslateElement(
           {
             pageLanguage: "en",
             includedLanguages: "en,fr,zh-CN,ar,es",
+            autoDisplay: false,
             layout:
               window.google.translate.TranslateElement.InlineLayout.SIMPLE,
-            autoDisplay: false,
           },
           "google_translate_element",
         );
       }
     };
 
-    // Attach listener for RTL layout switching (Arabic)
-    const handleLanguageChange = (e) => {
-      if (e.target && e.target.classList.contains("goog-te-combo")) {
-        const currentLang = e.target.value;
-        if (currentLang === "ar") {
-          document.documentElement.setAttribute("dir", "rtl");
-        } else {
-          document.documentElement.setAttribute("dir", "ltr");
-        }
-      }
-    };
-    document.addEventListener("change", handleLanguageChange);
-
-    // Check if script is already present on the page
-    let script = document.getElementById("google-translate-script");
+    // Load Google Translate script only once
+    let script = document.getElementById(SCRIPT_ID);
 
     if (!script) {
       script = document.createElement("script");
-      script.id = "google-translate-script";
-      script.type = "text/javascript";
-      script.src = "https://translate.google.com/translate_a/element.js";
+      script.id = SCRIPT_ID;
+      script.src =
+        "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
       script.async = true;
-
-      // RUN INIT ONCE THE SCRIPT FILE FINISHES DOWNLOADING
-      script.onload = () => {
-        initTranslate();
-      };
 
       document.body.appendChild(script);
     } else {
-      // If script exists (e.g. navigation or hot reload), run init immediately
-      initTranslate();
+      // Script already loaded
+      window.googleTranslateElementInit();
     }
+
+    // Handle RTL languages
+    const handleLanguageChange = (event) => {
+      if (!event.target?.classList?.contains("goog-te-combo")) return;
+
+      const language = event.target.value;
+
+      document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+      document.body.dir = language === "ar" ? "rtl" : "ltr";
+    };
+
+    document.addEventListener("change", handleLanguageChange);
 
     return () => {
       document.removeEventListener("change", handleLanguageChange);
@@ -58,8 +61,9 @@ export default function GoogleTranslate() {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 min-h-[38px]">
-      <div id="google_translate_element" />
-    </div>
+    <div
+      id="google_translate_element"
+      className="flex items-center min-h-[38px]"
+    />
   );
 }

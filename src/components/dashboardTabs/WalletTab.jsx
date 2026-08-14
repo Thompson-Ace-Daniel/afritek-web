@@ -182,7 +182,7 @@ export const WalletTab = ({ darkMode }) => {
 
       {/* Main Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Deposit Form */}
+        {/* Deposit Form
         <div
           className={`lg:col-span-1 ${
             darkMode
@@ -260,7 +260,7 @@ export const WalletTab = ({ darkMode }) => {
               )}
             </button>
           </form>
-        </div>
+        </div> */}
 
         {/* Recent Commissions & Activity Table */}
         <div

@@ -294,6 +294,8 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                 } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
               >
                 <option value="paystack">Paystack</option>
+                <option value="stripe">Stripe</option>
+                <option value="paypal">Paypal</option>
                 <option value="wallet">Wallet</option>
               </select>
             </div>
@@ -529,3 +531,4 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
     </div>
   );
 };
+
