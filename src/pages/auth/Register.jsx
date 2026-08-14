@@ -65,7 +65,10 @@ export default function Register() {
       return;
     }
 
+
     setSubmitting(true);
+
+    const payload = { ...form };
 
     const trimmedPhone = form.phone?.trim();
     if (trimmedPhone) payload.phone = trimmedPhone;
@@ -74,7 +77,6 @@ export default function Register() {
     if (trimmedRefCode) payload.referralCode = trimmedRefCode;
 
     try {
-      const payload = { ...form };
       if (!payload.referralCode) delete payload.referralCode;
       if (!payload.phone) delete payload.phone;
       await registerUser(payload);
