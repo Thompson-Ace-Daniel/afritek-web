@@ -266,14 +266,14 @@ export default function Dashboard() {
               AfriTek
             </span>
           </div>
+
           <button
-            onClick={handleLogout}
-            className={`p-2 rounded-xl ${
-              darkMode ? "hover:bg-zinc-800" : "hover:bg-gray-100"
-            } transition-colors`}
-            aria-label="Logout"
+            onClick={() => {
+              setCurrentTab("profile");
+            }}
+            className="w-10 h-10 rounded-xl cursor-pointer bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold"
           >
-            <LogOut className={darkMode ? "text-red-400" : "text-red-500"} />
+            {user?.fullName?.charAt(0) || "U"}
           </button>
         </div>
       </header>

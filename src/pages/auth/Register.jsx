@@ -175,6 +175,10 @@ export default function Register() {
           {...register("referralCode")}
         />
 
+        <p className="text-center my-2 text-sm text-neutral-300">
+          By continuing you agree to our <a className="underline" href="#">Terms & Conditions</a>
+        </p>
+
         <Button type="submit" fullWidth loading={submitting} size="lg">
           Create account
         </Button>

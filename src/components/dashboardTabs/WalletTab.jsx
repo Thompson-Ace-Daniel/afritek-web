@@ -21,7 +21,7 @@ export const WalletTab = ({ darkMode }) => {
 
   // Form State
   const [depositAmount, setDepositAmount] = useState("");
-  const [depositDescription, setDepositDescription] = useState("Test deposit");
+  const [depositDescription, setDepositDescription] = useState("");
 
   // Fetch Wallet Data from API
   const fetchWallet = useCallback(async () => {
@@ -108,29 +108,31 @@ export const WalletTab = ({ darkMode }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto px-4 sm:px-0">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1
-            className={`text-2xl font-bold ${
+            className={`text-xl sm:text-2xl font-bold ${
               darkMode ? "text-white" : "text-gray-900"
             }`}
           >
             Wallet
           </h1>
-          <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
+          <p
+            className={`text-sm ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+          >
             Manage your funds and transactions
           </p>
         </div>
         <button
           onClick={fetchWallet}
           disabled={loading}
-          className={`px-4 py-2 ${
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 ${
             darkMode
               ? "bg-zinc-800 hover:bg-zinc-700 text-white"
               : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-          } rounded-xl text-sm transition-colors flex items-center gap-2 self-start md:self-auto disabled:opacity-50`}
+          } rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-2 self-start sm:self-auto disabled:opacity-50`}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -138,7 +140,7 @@ export const WalletTab = ({ darkMode }) => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {walletStats.map((stat, index) => {
           const Icon = stat.icon;
           const bgMap = darkMode
@@ -148,19 +150,19 @@ export const WalletTab = ({ darkMode }) => {
           return (
             <div
               key={index}
-              className={`${bgMap} border rounded-2xl p-6 transition-all`}
+              className={`${bgMap} border rounded-2xl p-4 sm:p-6 transition-all`}
             >
               <div className="flex items-start justify-between">
                 <div>
                   <p
-                    className={`text-sm ${
+                    className={`text-xs sm:text-sm ${
                       darkMode ? "text-zinc-400" : "text-gray-500"
                     }`}
                   >
                     {stat.label}
                   </p>
                   <p
-                    className={`text-xl font-bold ${
+                    className={`text-base sm:text-xl font-bold ${
                       darkMode ? "text-white" : "text-gray-900"
                     } mt-1`}
                   >
@@ -168,7 +170,7 @@ export const WalletTab = ({ darkMode }) => {
                   </p>
                 </div>
                 <div
-                  className={`p-3 rounded-xl border ${colorMap[stat.color]}`}
+                  className={`p-2 sm:p-3 rounded-xl border ${colorMap[stat.color]}`}
                 >
                   <Icon className="w-5 h-5" />
                 </div>
@@ -179,22 +181,22 @@ export const WalletTab = ({ darkMode }) => {
       </div>
 
       {/* Main Grid Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Deposit Form */}
         <div
           className={`lg:col-span-1 ${
             darkMode
               ? "bg-zinc-900/50 border-zinc-800"
               : "bg-white border-gray-200"
-          } border rounded-2xl p-6 flex flex-col justify-between`}
+          } border rounded-2xl p-4 sm:p-6 flex flex-col justify-between`}
         >
-          <form onSubmit={handleDeposit} className="space-y-4">
+          <form onSubmit={handleDeposit} className="space-y-3 sm:space-y-4">
             <h3
-              className={`text-lg font-bold ${
+              className={`text-base sm:text-lg font-bold ${
                 darkMode ? "text-white" : "text-gray-900"
               }`}
             >
-              Manual Deposit (Testing)
+              Deposit
             </h3>
 
             <div>
@@ -216,7 +218,7 @@ export const WalletTab = ({ darkMode }) => {
                   darkMode
                     ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                     : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+                } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
               />
             </div>
 
@@ -237,14 +239,14 @@ export const WalletTab = ({ darkMode }) => {
                   darkMode
                     ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                     : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+                } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
               />
             </div>
 
             <button
               type="submit"
               disabled={depositing}
-              className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
+              className="w-full py-2.5 sm:py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
             >
               {depositing ? (
                 <>
@@ -266,12 +268,12 @@ export const WalletTab = ({ darkMode }) => {
             darkMode
               ? "bg-zinc-900/50 border-zinc-800"
               : "bg-white border-gray-200"
-          } border rounded-2xl p-6`}
+          } border rounded-2xl p-4 sm:p-6`}
         >
           <h3
-            className={`text-lg font-bold ${
+            className={`text-base sm:text-lg font-bold ${
               darkMode ? "text-white" : "text-gray-900"
-            } mb-4`}
+            } mb-3 sm:mb-4`}
           >
             Recent Commissions
           </h3>
@@ -281,59 +283,71 @@ export const WalletTab = ({ darkMode }) => {
               <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
             </div>
           ) : wallet?.recentCommissions?.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr
-                    className={`border-b ${
-                      darkMode
-                        ? "border-zinc-800 text-zinc-400"
-                        : "border-gray-200 text-gray-500"
-                    } text-left`}
-                  >
-                    <th className="py-3 px-2">Level</th>
-                    <th className="py-3 px-2">Amount</th>
-                    <th className="py-3 px-2">Base</th>
-                    <th className="py-3 px-2">Rate</th>
-                    <th className="py-3 px-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody
-                  className={`divide-y ${
-                    darkMode ? "divide-zinc-800" : "divide-gray-100"
-                  }`}
-                >
-                  {wallet.recentCommissions.map((c) => (
-                    <tr key={c.id}>
-                      <td
-                        className={`py-3 px-2 font-medium ${
-                          darkMode ? "text-white" : "text-gray-900"
-                        }`}
-                      >
-                        L{c.level}
-                      </td>
-                      <td className="py-3 px-2 text-green-500 font-semibold">
-                        +₦{c.amount.toLocaleString()}
-                      </td>
-                      <td
-                        className={darkMode ? "text-zinc-400" : "text-gray-600"}
-                      >
-                        ₦{c.baseAmount.toLocaleString()}
-                      </td>
-                      <td
-                        className={darkMode ? "text-zinc-400" : "text-gray-600"}
-                      >
-                        {c.rate}%
-                      </td>
-                      <td
-                        className={darkMode ? "text-zinc-400" : "text-gray-600"}
-                      >
-                        {new Date(c.createdAt).toLocaleDateString()}
-                      </td>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <div className="min-w-full inline-block align-middle px-4 sm:px-0">
+                <table className="w-full text-xs sm:text-sm">
+                  <thead>
+                    <tr
+                      className={`border-b ${
+                        darkMode
+                          ? "border-zinc-800 text-zinc-400"
+                          : "border-gray-200 text-gray-500"
+                      } text-left`}
+                    >
+                      <th className="py-2 sm:py-3 px-2">Level</th>
+                      <th className="py-2 sm:py-3 px-2">Amount</th>
+                      <th className="hidden sm:table-cell py-2 sm:py-3 px-2">
+                        Base
+                      </th>
+                      <th className="hidden sm:table-cell py-2 sm:py-3 px-2">
+                        Rate
+                      </th>
+                      <th className="py-2 sm:py-3 px-2">Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody
+                    className={`divide-y ${
+                      darkMode ? "divide-zinc-800" : "divide-gray-100"
+                    }`}
+                  >
+                    {wallet.recentCommissions.map((c) => (
+                      <tr key={c.id}>
+                        <td
+                          className={`py-2 sm:py-3 px-2 font-medium ${
+                            darkMode ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          L{c.level}
+                        </td>
+                        <td className="py-2 sm:py-3 px-2 text-green-500 font-semibold">
+                          +₦{c.amount.toLocaleString()}
+                        </td>
+                        <td
+                          className={`hidden sm:table-cell py-2 sm:py-3 px-2 ${
+                            darkMode ? "text-zinc-400" : "text-gray-600"
+                          }`}
+                        >
+                          ₦{c.baseAmount.toLocaleString()}
+                        </td>
+                        <td
+                          className={`hidden sm:table-cell py-2 sm:py-3 px-2 ${
+                            darkMode ? "text-zinc-400" : "text-gray-600"
+                          }`}
+                        >
+                          {c.rate}%
+                        </td>
+                        <td
+                          className={`py-2 sm:py-3 px-2 ${
+                            darkMode ? "text-zinc-400" : "text-gray-600"
+                          }`}
+                        >
+                          {new Date(c.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
             <div
@@ -350,4 +364,3 @@ export const WalletTab = ({ darkMode }) => {
     </div>
   );
 };
-

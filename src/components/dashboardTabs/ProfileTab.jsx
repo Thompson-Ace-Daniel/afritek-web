@@ -58,7 +58,6 @@ import { updateProfileSchema } from "../../utils/validation.js";
 import SuccessAlert from "../SuccessAlert.jsx";
 import ErrorAlert from "../ErrorAlert.jsx";
 
-
 export const ProfileTab = ({ darkMode }) => {
   const { user, updateProfile, deleteAccount, sendEmailVerification } =
     useAuth();
@@ -142,14 +141,18 @@ export const ProfileTab = ({ darkMode }) => {
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-8">
+    <div className="max-w-xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0">
       <div>
         <h1
-          className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
+          className={`text-xl sm:text-2xl font-bold ${
+            darkMode ? "text-white" : "text-gray-900"
+          }`}
         >
           Profile
         </h1>
-        <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
+        <p
+          className={`text-sm ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+        >
           Manage your account information
         </p>
       </div>
@@ -159,31 +162,35 @@ export const ProfileTab = ({ darkMode }) => {
           darkMode
             ? "bg-zinc-900/50 border-zinc-800"
             : "bg-white border-gray-200"
-        } border rounded-2xl p-6`}
+        } border rounded-2xl p-4 sm:p-6`}
       >
         <div
-          className={`flex items-center gap-4 mb-6 pb-6 border-b ${
+          className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b ${
             darkMode ? "border-zinc-800" : "border-gray-200"
           }`}
         >
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xl font-bold text-white">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-lg sm:text-xl font-bold text-white flex-shrink-0">
             {(user?.fullName || user?.email || "?").charAt(0).toUpperCase()}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h2
-              className={`text-xl font-bold truncate ${darkMode ? "text-white" : "text-gray-900"}`}
+              className={`text-lg sm:text-xl font-bold truncate ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
             >
               {user?.fullName || "User"}
             </h2>
             <p
-              className={`truncate ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+              className={`truncate text-sm ${
+                darkMode ? "text-zinc-400" : "text-gray-500"
+              }`}
             >
               {user?.email}
             </p>
           </div>
-          <div className="ml-auto flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 ml-auto">
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium ${
                 darkMode
                   ? "bg-zinc-800 text-zinc-300"
                   : "bg-gray-100 text-gray-600"
@@ -194,18 +201,18 @@ export const ProfileTab = ({ darkMode }) => {
             </span>
             {user?.isVerified ? (
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border ${
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium border ${
                   darkMode
                     ? "bg-green-500/20 text-green-400 border-green-500/20"
                     : "bg-green-50 text-green-600 border-green-200"
                 }`}
               >
-                <BadgeCheck className="h-3 w-3" aria-hidden="true" />
+                <CheckCircle className="h-3 w-3" aria-hidden="true" />
                 Verified
               </span>
             ) : (
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border ${
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium border ${
                   darkMode
                     ? "bg-amber-500/20 text-amber-400 border-amber-500/20"
                     : "bg-amber-50 text-amber-600 border-amber-200"
@@ -237,13 +244,15 @@ export const ProfileTab = ({ darkMode }) => {
         )}
 
         <form
-          className="space-y-4"
+          className="space-y-3 sm:space-y-4"
           onSubmit={handleSubmit(onSubmit)}
           noValidate
         >
           <div>
             <label
-              className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-gray-700"} block mb-1.5`}
+              className={`text-sm font-medium ${
+                darkMode ? "text-zinc-300" : "text-gray-700"
+              } block mb-1.5`}
             >
               Email
             </label>
@@ -256,10 +265,10 @@ export const ProfileTab = ({ darkMode }) => {
                   darkMode
                     ? "bg-zinc-800 border-zinc-700 text-zinc-400"
                     : "bg-gray-100 border-gray-200 text-gray-500"
-                } border rounded-xl px-4 py-3 pr-40 outline-none cursor-not-allowed`}
+                } border rounded-xl px-4 py-3 pr-28 sm:pr-40 outline-none cursor-not-allowed text-sm sm:text-base`}
               />
               <span
-                className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs ${
                   darkMode ? "text-zinc-500" : "text-gray-400"
                 }`}
               >
@@ -270,7 +279,9 @@ export const ProfileTab = ({ darkMode }) => {
 
           <div>
             <label
-              className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-gray-700"} block mb-1.5`}
+              className={`text-sm font-medium ${
+                darkMode ? "text-zinc-300" : "text-gray-700"
+              } block mb-1.5`}
             >
               Full name <span className="text-amber-500">*</span>
             </label>
@@ -280,7 +291,7 @@ export const ProfileTab = ({ darkMode }) => {
                 darkMode
                   ? "bg-zinc-800 border-zinc-700 text-white"
                   : "bg-gray-50 border-gray-200 text-gray-900"
-              } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+              } border rounded-xl px-4 py-3 text-sm sm:text-base outline-none focus:border-amber-400 transition-colors`}
               {...register("fullName")}
             />
             {errors.fullName && (
@@ -292,7 +303,9 @@ export const ProfileTab = ({ darkMode }) => {
 
           <div>
             <label
-              className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-gray-700"} block mb-1.5`}
+              className={`text-sm font-medium ${
+                darkMode ? "text-zinc-300" : "text-gray-700"
+              } block mb-1.5`}
             >
               Phone
             </label>
@@ -302,7 +315,7 @@ export const ProfileTab = ({ darkMode }) => {
                 darkMode
                   ? "bg-zinc-800 border-zinc-700 text-white"
                   : "bg-gray-50 border-gray-200 text-gray-900"
-              } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+              } border rounded-xl px-4 py-3 text-sm sm:text-base outline-none focus:border-amber-400 transition-colors`}
               {...register("phone")}
             />
             {errors.phone && (
@@ -312,11 +325,11 @@ export const ProfileTab = ({ darkMode }) => {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 pt-2">
             <button
               type="submit"
               disabled={!isDirty || submitting}
-              className="px-6 py-2.5 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 sm:px-6 py-2 sm:py-2.5 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
             >
               {submitting ? "Saving..." : "Save changes"}
             </button>
@@ -326,11 +339,11 @@ export const ProfileTab = ({ darkMode }) => {
                 type="button"
                 onClick={handleSendVerification}
                 disabled={sendingVerify}
-                className={`px-6 py-2.5 ${
+                className={`px-4 sm:px-6 py-2 sm:py-2.5 ${
                   darkMode
                     ? "bg-zinc-800 hover:bg-zinc-700 text-white"
                     : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                } rounded-xl transition-colors disabled:opacity-50`}
+                } rounded-xl transition-colors disabled:opacity-50 text-sm sm:text-base`}
               >
                 {sendingVerify ? "Sending..." : "Send verification email"}
               </button>
@@ -339,11 +352,11 @@ export const ProfileTab = ({ darkMode }) => {
             <button
               type="button"
               onClick={() => (window.location.href = "/change-password")}
-              className={`px-6 py-2.5 ${
+              className={`px-4 sm:px-6 py-2 sm:py-2.5 ${
                 darkMode
                   ? "bg-zinc-800 hover:bg-zinc-700 text-white"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-              } rounded-xl transition-colors flex items-center gap-2`}
+              } rounded-xl transition-colors flex items-center gap-2 text-sm sm:text-base`}
             >
               <Key className="w-4 h-4" />
               Change Password
@@ -357,10 +370,12 @@ export const ProfileTab = ({ darkMode }) => {
           darkMode
             ? "bg-red-500/5 border-red-500/20"
             : "bg-red-50 border-red-200"
-        } border rounded-2xl p-6`}
+        } border rounded-2xl p-4 sm:p-6`}
       >
         <h2
-          className={`text-sm font-semibold ${darkMode ? "text-red-400" : "text-red-600"}`}
+          className={`text-sm font-semibold ${
+            darkMode ? "text-red-400" : "text-red-600"
+          }`}
         >
           Danger zone
         </h2>
@@ -373,11 +388,11 @@ export const ProfileTab = ({ darkMode }) => {
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className={`mt-4 px-6 py-2.5 ${
+          className={`mt-4 px-4 sm:px-6 py-2 sm:py-2.5 ${
             darkMode
               ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
               : "bg-red-100 text-red-600 hover:bg-red-200"
-          } rounded-xl transition-colors disabled:opacity-50`}
+          } rounded-xl transition-colors disabled:opacity-50 text-sm sm:text-base`}
         >
           {deleting ? "Deleting..." : "Delete account"}
         </button>

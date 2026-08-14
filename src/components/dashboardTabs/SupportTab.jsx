@@ -101,54 +101,58 @@ export const SupportTab = ({ darkMode, user }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto px-4 sm:px-0">
       {/* Header */}
       <div>
         <h1
-          className={`text-2xl font-bold ${
+          className={`text-xl sm:text-2xl font-bold ${
             darkMode ? "text-white" : "text-gray-900"
           }`}
         >
           Support Center
         </h1>
-        <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
+        <p
+          className={`text-sm ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+        >
           Get help with your account and investments
         </p>
       </div>
 
       {/* Support Channels */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div
           className={`${
             darkMode
               ? "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700"
               : "bg-white border-gray-200 hover:shadow-lg"
-          } border rounded-2xl p-6 text-center transition-all`}
+          } border rounded-2xl p-4 sm:p-6 text-center transition-all`}
         >
           <div
-            className={`inline-flex p-4 rounded-xl ${
+            className={`inline-flex p-3 sm:p-4 rounded-xl ${
               darkMode
                 ? "bg-amber-500/10 text-amber-400"
                 : "bg-amber-50 text-amber-600"
-            } mb-4`}
+            } mb-3 sm:mb-4`}
           >
-            <Phone className="w-6 h-6" />
+            <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <h4
-            className={`font-semibold ${
+            className={`font-semibold text-sm sm:text-base ${
               darkMode ? "text-white" : "text-gray-900"
             }`}
           >
             Phone Support
           </h4>
           <p
-            className={`text-sm ${
+            className={`text-xs sm:text-sm ${
               darkMode ? "text-zinc-400" : "text-gray-500"
             } mt-1`}
           >
             Available 24/7
           </p>
-          <p className="text-amber-500 font-semibold mt-2">+1 (800) 555-0199</p>
+          <p className="text-amber-500 font-semibold mt-2 text-sm sm:text-base">
+            +234 903 282 8299
+          </p>
         </div>
 
         <div
@@ -156,32 +160,32 @@ export const SupportTab = ({ darkMode, user }) => {
             darkMode
               ? "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700"
               : "bg-white border-gray-200 hover:shadow-lg"
-          } border rounded-2xl p-6 text-center transition-all`}
+          } border rounded-2xl p-4 sm:p-6 text-center transition-all`}
         >
           <div
-            className={`inline-flex p-4 rounded-xl ${
+            className={`inline-flex p-3 sm:p-4 rounded-xl ${
               darkMode
                 ? "bg-amber-500/10 text-amber-400"
                 : "bg-amber-50 text-amber-600"
-            } mb-4`}
+            } mb-3 sm:mb-4`}
           >
-            <Mail className="w-6 h-6" />
+            <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <h4
-            className={`font-semibold ${
+            className={`font-semibold text-sm sm:text-base ${
               darkMode ? "text-white" : "text-gray-900"
             }`}
           >
             Email Support
           </h4>
           <p
-            className={`text-sm ${
+            className={`text-xs sm:text-sm ${
               darkMode ? "text-zinc-400" : "text-gray-500"
             } mt-1`}
           >
             Response within 24hrs
           </p>
-          <p className="text-amber-500 font-semibold mt-2">
+          <p className="text-amber-500 font-semibold mt-2 text-sm sm:text-base">
             support@afritek.com
           </p>
         </div>
@@ -193,12 +197,12 @@ export const SupportTab = ({ darkMode, user }) => {
           darkMode
             ? "bg-zinc-900/50 border-zinc-800"
             : "bg-white border-gray-200"
-        } border rounded-2xl p-6`}
+        } border rounded-2xl p-4 sm:p-6`}
       >
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-3 sm:mb-4">
           <MessageSquare className="w-5 h-5 text-amber-500" />
           <h3
-            className={`text-lg font-bold ${
+            className={`text-base sm:text-lg font-bold ${
               darkMode ? "text-white" : "text-gray-900"
             }`}
           >
@@ -215,7 +219,7 @@ export const SupportTab = ({ darkMode, user }) => {
               return (
                 <div
                   key={ticket.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 ${
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 ${
                     darkMode ? "bg-zinc-800/50" : "bg-gray-50"
                   } rounded-xl gap-2 border ${
                     darkMode ? "border-zinc-800" : "border-gray-100"
@@ -229,7 +233,7 @@ export const SupportTab = ({ darkMode, user }) => {
                     >
                       {ticket.subject}
                     </p>
-                    <div className="flex items-center gap-2 mt-1 text-xs">
+                    <div className="flex items-center gap-2 mt-1 text-xs flex-wrap">
                       <span
                         className={darkMode ? "text-zinc-400" : "text-gray-500"}
                       >
@@ -250,7 +254,7 @@ export const SupportTab = ({ darkMode, user }) => {
 
                   <div className="self-start sm:self-center">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${badge.className}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium border ${badge.className}`}
                     >
                       <BadgeIcon className="w-3.5 h-3.5" />
                       {badge.label}
@@ -287,12 +291,12 @@ export const SupportTab = ({ darkMode, user }) => {
           darkMode
             ? "bg-zinc-900/50 border-zinc-800"
             : "bg-white border-gray-200"
-        } border rounded-2xl p-6`}
+        } border rounded-2xl p-4 sm:p-6`}
       >
         <h3
-          className={`text-lg font-bold ${
+          className={`text-base sm:text-lg font-bold ${
             darkMode ? "text-white" : "text-gray-900"
-          } mb-4`}
+          } mb-3 sm:mb-4`}
         >
           Submit a Ticket
         </h3>
@@ -306,7 +310,7 @@ export const SupportTab = ({ darkMode, user }) => {
           </div>
         )}
 
-        <form className="space-y-4" onSubmit={handleSubmitTicket}>
+        <form className="space-y-3 sm:space-y-4" onSubmit={handleSubmitTicket}>
           <div>
             <label
               className={`block text-xs font-semibold mb-1.5 ${
@@ -379,7 +383,7 @@ export const SupportTab = ({ darkMode, user }) => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full px-6 py-3 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full px-6 py-2.5 sm:py-3 bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
           >
             {submitting ? (
               <>

@@ -8,7 +8,7 @@ export default function ProtectedRoute({ children, roles }) {
   const location = useLocation();
 
   if (!isInitialized || isLoading) {
-    return <LoadingScreen message="Checking session..." />;
+    return <LoadingScreen message="" />;
   }
 
   if (!isAuthenticated) {

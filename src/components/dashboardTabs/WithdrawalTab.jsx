@@ -30,7 +30,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
     accountName: "",
     accountNumber: "",
     bankCode: "",
-    bankName: "GTBank",
+    bankName: "",
   });
 
   // Fetch Withdrawals Data
@@ -47,7 +47,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
       }
     } catch (err) {
       toast.error(
-        err.response?.data?.message || "Failed to load withdrawal history"
+        err.response?.data?.message || "Failed to load withdrawal history",
       );
     } finally {
       setLoading(false);
@@ -111,53 +111,55 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto px-4 sm:px-0">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1
-            className={`text-2xl font-bold ${
+            className={`text-xl sm:text-2xl font-bold ${
               darkMode ? "text-white" : "text-gray-900"
             }`}
           >
             Withdrawals
           </h1>
-          <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
+          <p
+            className={`text-sm ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+          >
             Request and track your withdrawals
           </p>
         </div>
         <button
           onClick={loadWithdrawals}
           disabled={loading}
-          className={`px-4 py-2 ${
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 ${
             darkMode
               ? "bg-zinc-800 hover:bg-zinc-700 text-white"
               : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-          } rounded-xl text-sm transition-colors flex items-center gap-2 self-start md:self-auto disabled:opacity-50`}
+          } rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-2 self-start sm:self-auto disabled:opacity-50`}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         {/* Request Form */}
         <div
           className={`lg:col-span-3 ${
             darkMode
               ? "bg-zinc-900/50 border-zinc-800"
               : "bg-white border-gray-200"
-          } border rounded-2xl p-6`}
+          } border rounded-2xl p-4 sm:p-6`}
         >
           <h3
-            className={`text-lg font-bold ${
+            className={`text-base sm:text-lg font-bold ${
               darkMode ? "text-white" : "text-gray-900"
-            } mb-4`}
+            } mb-3 sm:mb-4`}
           >
             Request Withdrawal
           </h3>
 
-          <form onSubmit={handleRequest} className="space-y-4">
+          <form onSubmit={handleRequest} className="space-y-3 sm:space-y-4">
             <div>
               <label
                 className={`text-sm font-medium ${
@@ -177,11 +179,11 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                   darkMode
                     ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                     : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+                } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label
                   className={`text-sm font-medium ${
@@ -202,7 +204,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                     darkMode
                       ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                       : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                  } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+                  } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
                 />
               </div>
 
@@ -227,12 +229,12 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                     darkMode
                       ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                       : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                  } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+                  } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label
                   className={`text-sm font-medium ${
@@ -253,7 +255,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                     darkMode
                       ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                       : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                  } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+                  } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
                 />
               </div>
 
@@ -263,10 +265,11 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                     darkMode ? "text-zinc-300" : "text-gray-700"
                   } block mb-1.5`}
                 >
-                  Bank Name (optional)
+                  Bank Name <span className="text-amber-500">*</span>
                 </label>
                 <input
                   type="text"
+                  required
                   value={form.bankName}
                   onChange={(e) =>
                     setForm({ ...form, bankName: e.target.value })
@@ -276,7 +279,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                     darkMode
                       ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                       : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                  } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors`}
+                  } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
                 />
               </div>
             </div>
@@ -284,7 +287,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+              className="w-full py-2.5 sm:py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-2 text-sm sm:text-base"
             >
               {submitting ? (
                 <>
@@ -306,12 +309,12 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
             darkMode
               ? "bg-zinc-900/50 border-zinc-800"
               : "bg-white border-gray-200"
-          } border rounded-2xl p-6`}
+          } border rounded-2xl p-4 sm:p-6`}
         >
           <h3
-            className={`text-lg font-bold ${
+            className={`text-base sm:text-lg font-bold ${
               darkMode ? "text-white" : "text-gray-900"
-            } mb-4`}
+            } mb-3 sm:mb-4`}
           >
             My Withdrawals
           </h3>
@@ -330,33 +333,33 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                 return (
                   <div
                     key={w.withdrawalId || w.id}
-                    className={`p-4 ${
+                    className={`p-3 sm:p-4 ${
                       darkMode ? "bg-zinc-800/50" : "bg-gray-50"
                     } rounded-xl border ${
                       darkMode ? "border-zinc-800" : "border-gray-100"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                       <span
                         className={`font-bold ${
                           darkMode ? "text-white" : "text-gray-900"
-                        }`}
+                        } text-sm sm:text-base`}
                       >
                         ₦{(w.amount || 0).toLocaleString()}
                       </span>
                       <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize flex items-center gap-1 ${
+                        className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold capitalize flex items-center gap-1 ${
                           isApproved
                             ? darkMode
                               ? "bg-green-500/10 text-green-400"
                               : "bg-green-50 text-green-600"
                             : isPending
-                            ? darkMode
-                              ? "bg-amber-500/10 text-amber-400"
-                              : "bg-amber-50 text-amber-600"
-                            : darkMode
-                            ? "bg-red-500/10 text-red-400"
-                            : "bg-red-50 text-red-600"
+                              ? darkMode
+                                ? "bg-amber-500/10 text-amber-400"
+                                : "bg-amber-50 text-amber-600"
+                              : darkMode
+                                ? "bg-red-500/10 text-red-400"
+                                : "bg-red-50 text-red-600"
                         }`}
                       >
                         {isApproved ? (
@@ -379,7 +382,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                     </p>
 
                     <p
-                      className={`text-[11px] ${
+                      className={`text-[10px] sm:text-[11px] ${
                         darkMode ? "text-zinc-500" : "text-gray-400"
                       } mt-1`}
                     >
@@ -413,16 +416,16 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
       {/* Admin Panel (Visible Only to Admins) */}
       {isAdmin && (
         <div
-          className={`mt-6 ${
+          className={`mt-4 sm:mt-6 ${
             darkMode
               ? "bg-zinc-900/50 border-zinc-800"
               : "bg-white border-gray-200"
-          } border rounded-2xl p-6`}
+          } border rounded-2xl p-4 sm:p-6`}
         >
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
             <ShieldCheck className="w-5 h-5 text-amber-500" />
             <h3
-              className={`text-lg font-bold ${
+              className={`text-base sm:text-lg font-bold ${
                 darkMode ? "text-white" : "text-gray-900"
               }`}
             >
@@ -439,7 +442,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
               No pending withdrawal requests.
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {pending.map((w) => {
                 const itemReqId = w.withdrawalId || w.id;
                 const isProcessing = processingId === itemReqId;
@@ -447,22 +450,22 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                 return (
                   <div
                     key={itemReqId}
-                    className={`p-4 border ${
+                    className={`p-3 sm:p-4 border ${
                       darkMode
                         ? "bg-zinc-800/40 border-zinc-800"
                         : "bg-gray-50 border-gray-200"
                     } rounded-xl flex flex-col justify-between gap-3`}
                   >
                     <div>
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-wrap justify-between items-start gap-1">
                         <p
-                          className={`text-lg font-bold ${
+                          className={`text-base sm:text-lg font-bold ${
                             darkMode ? "text-white" : "text-gray-900"
                           }`}
                         >
                           ₦{(w.amount || 0).toLocaleString()}
                         </p>
-                        <span className="text-xs text-amber-500 font-medium bg-amber-500/10 px-2 py-0.5 rounded">
+                        <span className="text-[10px] sm:text-xs text-amber-500 font-medium bg-amber-500/10 px-2 py-0.5 rounded">
                           Pending
                         </span>
                       </div>
@@ -486,7 +489,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                       <button
                         onClick={() => handleProcess(itemReqId, "approve")}
                         disabled={isProcessing}
-                        className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                        className="flex-1 py-1.5 sm:py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
                       >
                         {isProcessing ? (
                           <Loader2 className="w-3 h-3 animate-spin" />
@@ -497,7 +500,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                       <button
                         onClick={() => handleProcess(itemReqId, "reject")}
                         disabled={isProcessing}
-                        className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                        className="flex-1 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
                       >
                         {isProcessing ? (
                           <Loader2 className="w-3 h-3 animate-spin" />

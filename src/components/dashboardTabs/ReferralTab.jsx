@@ -95,27 +95,29 @@ export const ReferralTab = ({ darkMode }) => {
   ];
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto px-4 sm:px-0">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1
-            className={`text-2xl font-bold ${
+            className={`text-xl sm:text-2xl font-bold ${
               darkMode ? "text-white" : "text-gray-900"
             }`}
           >
             My Referrals
           </h1>
-          <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
+          <p
+            className={`text-sm ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
+          >
             Invite friends and earn recurring rewards
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={fetchReferralStats}
             disabled={loading}
-            className={`p-2.5 ${
+            className={`p-2 sm:p-2.5 ${
               darkMode
                 ? "bg-zinc-800 hover:bg-zinc-700 text-white"
                 : "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -125,19 +127,19 @@ export const ReferralTab = ({ darkMode }) => {
           </button>
 
           <div
-            className={`flex items-center gap-2 px-4 py-2 border rounded-xl ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 border rounded-xl ${
               darkMode
                 ? "bg-amber-500/10 border-amber-500/20"
                 : "bg-amber-50 border-amber-200"
             }`}
           >
             <Award
-              className={`w-4 h-4 ${
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                 darkMode ? "text-amber-400" : "text-amber-600"
               }`}
             />
             <span
-              className={`text-sm font-semibold ${
+              className={`text-[10px] sm:text-sm font-semibold ${
                 darkMode ? "text-amber-400" : "text-amber-600"
               }`}
             >
@@ -154,23 +156,23 @@ export const ReferralTab = ({ darkMode }) => {
           darkMode
             ? "bg-zinc-900/50 border-zinc-800"
             : "bg-white border-gray-200"
-        } border rounded-2xl p-6`}
+        } border rounded-2xl p-4 sm:p-6`}
       >
         <h3
-          className={`text-lg font-bold ${
+          className={`text-base sm:text-lg font-bold ${
             darkMode ? "text-white" : "text-gray-900"
-          } mb-4`}
+          } mb-3 sm:mb-4`}
         >
           Your Referral Link
         </h3>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <div
-            className={`flex-1 flex items-center gap-3 px-4 py-3 ${
+            className={`flex-1 flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 ${
               darkMode
                 ? "bg-zinc-800 border-zinc-700 text-zinc-300"
                 : "bg-gray-50 border-gray-200 text-gray-700"
-            } border rounded-xl font-mono text-sm overflow-x-auto`}
+            } border rounded-xl font-mono text-[10px] sm:text-sm overflow-x-auto whitespace-nowrap`}
           >
             {loading ? (
               <div className="flex items-center gap-2 text-xs">
@@ -184,11 +186,11 @@ export const ReferralTab = ({ darkMode }) => {
           <button
             onClick={handleCopy}
             disabled={!stats?.referralLink || loading}
-            className={`px-6 py-3 ${
+            className={`px-4 sm:px-6 py-2.5 sm:py-3 ${
               darkMode
                 ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
                 : "bg-amber-100 text-amber-600 hover:bg-amber-200"
-            } rounded-xl transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50`}
+            } rounded-xl transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base`}
           >
             {copied ? (
               <Check className="w-4 h-4" />
@@ -199,7 +201,7 @@ export const ReferralTab = ({ darkMode }) => {
           </button>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
           <p
             className={`text-sm ${
               darkMode ? "text-zinc-400" : "text-gray-500"
@@ -220,7 +222,7 @@ export const ReferralTab = ({ darkMode }) => {
       </div>
 
       {/* Referral Statistics Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -230,19 +232,19 @@ export const ReferralTab = ({ darkMode }) => {
                 darkMode
                   ? "bg-zinc-900/50 border-zinc-800"
                   : "bg-white border-gray-200"
-              } border rounded-2xl p-6 transition-all`}
+              } border rounded-2xl p-4 sm:p-6 transition-all`}
             >
               <div className="flex items-start justify-between">
                 <div>
                   <p
-                    className={`text-sm ${
+                    className={`text-xs sm:text-sm ${
                       darkMode ? "text-zinc-400" : "text-gray-500"
                     }`}
                   >
                     {stat.label}
                   </p>
                   <p
-                    className={`text-xl font-bold ${
+                    className={`text-base sm:text-xl font-bold ${
                       darkMode ? "text-white" : "text-gray-900"
                     } mt-1`}
                   >
@@ -250,7 +252,7 @@ export const ReferralTab = ({ darkMode }) => {
                   </p>
                 </div>
                 <div
-                  className={`p-3 rounded-xl border ${colorMap[stat.color]}`}
+                  className={`p-2 sm:p-3 rounded-xl border ${colorMap[stat.color]}`}
                 >
                   <Icon className="w-5 h-5" />
                 </div>
@@ -266,18 +268,18 @@ export const ReferralTab = ({ darkMode }) => {
           darkMode
             ? "bg-zinc-900/50 border-zinc-800"
             : "bg-white border-gray-200"
-        } border rounded-2xl p-6`}
+        } border rounded-2xl p-4 sm:p-6`}
       >
         <h3
-          className={`text-lg font-bold ${
+          className={`text-base sm:text-lg font-bold ${
             darkMode ? "text-white" : "text-gray-900"
-          } mb-4`}
+          } mb-3 sm:mb-4`}
         >
           Commission Rates
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div
-            className={`p-4 ${
+            className={`p-3 sm:p-4 ${
               darkMode ? "bg-zinc-800/50" : "bg-gray-50"
             } rounded-xl text-center`}
           >
@@ -285,14 +287,14 @@ export const ReferralTab = ({ darkMode }) => {
               1
             </div>
             <p
-              className={`text-2xl font-bold ${
+              className={`text-xl sm:text-2xl font-bold ${
                 darkMode ? "text-white" : "text-gray-900"
               } mt-2`}
             >
               {stats?.rates?.level1 || "15%"}
             </p>
             <p
-              className={`text-sm ${
+              className={`text-xs sm:text-sm ${
                 darkMode ? "text-zinc-400" : "text-gray-500"
               }`}
             >
@@ -301,7 +303,7 @@ export const ReferralTab = ({ darkMode }) => {
           </div>
 
           <div
-            className={`p-4 ${
+            className={`p-3 sm:p-4 ${
               darkMode ? "bg-zinc-800/50" : "bg-gray-50"
             } rounded-xl text-center`}
           >
@@ -309,14 +311,14 @@ export const ReferralTab = ({ darkMode }) => {
               2
             </div>
             <p
-              className={`text-2xl font-bold ${
+              className={`text-xl sm:text-2xl font-bold ${
                 darkMode ? "text-white" : "text-gray-900"
               } mt-2`}
             >
               {stats?.rates?.level2 || "5%"}
             </p>
             <p
-              className={`text-sm ${
+              className={`text-xs sm:text-sm ${
                 darkMode ? "text-zinc-400" : "text-gray-500"
               }`}
             >
@@ -332,12 +334,12 @@ export const ReferralTab = ({ darkMode }) => {
           darkMode
             ? "bg-zinc-900/50 border-zinc-800"
             : "bg-white border-gray-200"
-        } border rounded-2xl p-6`}
+        } border rounded-2xl p-4 sm:p-6`}
       >
         <h3
-          className={`text-lg font-bold ${
+          className={`text-base sm:text-lg font-bold ${
             darkMode ? "text-white" : "text-gray-900"
-          } mb-4`}
+          } mb-3 sm:mb-4`}
         >
           Direct Referred Users
         </h3>
@@ -351,32 +353,32 @@ export const ReferralTab = ({ darkMode }) => {
             {stats.level1Users.map((refUser, idx) => (
               <div
                 key={refUser.uid || refUser._id || idx}
-                className={`flex items-center justify-between p-3.5 ${
+                className={`flex flex-wrap items-center justify-between gap-2 p-3 sm:p-3.5 ${
                   darkMode ? "bg-zinc-800/50" : "bg-gray-50"
                 } rounded-xl border ${
                   darkMode ? "border-zinc-800" : "border-gray-100"
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div
-                    className={`w-10 h-10 rounded-full ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full ${
                       darkMode ? "bg-zinc-700" : "bg-amber-100"
                     } flex items-center justify-center font-bold ${
                       darkMode ? "text-white" : "text-amber-700"
-                    }`}
+                    } text-xs sm:text-sm`}
                   >
                     {refUser.fullName?.charAt(0) || "U"}
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p
-                      className={`font-semibold text-sm ${
+                      className={`font-semibold text-sm truncate ${
                         darkMode ? "text-white" : "text-gray-900"
                       }`}
                     >
                       {refUser.fullName || "Anonymous User"}
                     </p>
                     <p
-                      className={`text-xs ${
+                      className={`text-xs truncate ${
                         darkMode ? "text-zinc-400" : "text-gray-500"
                       }`}
                     >
@@ -385,7 +387,7 @@ export const ReferralTab = ({ darkMode }) => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full font-medium">
+                <div className="flex items-center gap-1 text-[10px] sm:text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full font-medium whitespace-nowrap">
                   <UserCheck className="w-3.5 h-3.5" />
                   <span>Level 1</span>
                 </div>
@@ -419,16 +421,16 @@ export const ReferralTab = ({ darkMode }) => {
           darkMode
             ? "bg-gradient-to-br from-amber-500/10 to-transparent border-amber-500/20"
             : "bg-gradient-to-br from-amber-50 to-transparent border-amber-200"
-        } border rounded-2xl p-6`}
+        } border rounded-2xl p-4 sm:p-6`}
       >
         <h3
-          className={`text-lg font-bold ${
+          className={`text-base sm:text-lg font-bold ${
             darkMode ? "text-white" : "text-gray-900"
-          } mb-4`}
+          } mb-3 sm:mb-4`}
         >
           Referral Benefits
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           {[
             {
               icon: Gift,
@@ -448,24 +450,24 @@ export const ReferralTab = ({ darkMode }) => {
           ].map((benefit, i) => (
             <div
               key={i}
-              className={`p-4 ${
+              className={`p-3 sm:p-4 ${
                 darkMode ? "bg-zinc-800/50" : "bg-white"
               } rounded-xl`}
             >
               <benefit.icon
-                className={`w-7 h-7 ${
+                className={`w-6 h-6 sm:w-7 sm:h-7 ${
                   darkMode ? "text-amber-400" : "text-amber-600"
                 } mb-2`}
               />
               <h4
-                className={`font-semibold ${
+                className={`font-semibold text-sm sm:text-base ${
                   darkMode ? "text-white" : "text-gray-900"
                 }`}
               >
                 {benefit.title}
               </h4>
               <p
-                className={`text-sm ${
+                className={`text-xs sm:text-sm ${
                   darkMode ? "text-zinc-400" : "text-gray-500"
                 } mt-1`}
               >

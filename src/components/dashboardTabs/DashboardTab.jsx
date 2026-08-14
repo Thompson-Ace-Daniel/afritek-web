@@ -150,7 +150,6 @@ export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
           )}
         </div>
       </div>
-
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
@@ -191,8 +190,6 @@ export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
           );
         })}
       </div>
-
-      {/* Share Market Overview (Dynamic Data) */}
       {shareInfo && (
         <div
           className={`${
@@ -292,167 +289,77 @@ export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
           </div>
         </div>
       )}
+      {/* Shares Sold Progress Bar */}
+      {shareInfo &&
+        (() => {
+          const sold = shareInfo.soldShares ?? 0;
+          const remaining = shareInfo.remainingShares ?? 0;
+          const totalShares = sold + remaining;
+          const percentage =
+            totalShares > 0 ? ((sold / totalShares) * 100).toFixed(5) : 0;
 
-      {/* Investor Tier Progress */}
-      <div
-        className={`${
-          darkMode
-            ? "bg-zinc-900/50 border-zinc-800"
-            : "bg-white border-gray-200"
-        } border rounded-2xl p-6`}
-      >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-            <h3
-              className={`font-semibold ${
-                darkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Investor Tier Progress
-            </h3>
-            <p
-              className={`text-sm ${
-                darkMode ? "text-zinc-400" : "text-gray-500"
-              }`}
-            >
-              You're at {userData.tier} level
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Crown className="w-4 h-4 text-amber-500" />
-            <span className={darkMode ? "text-zinc-300" : "text-gray-700"}>
-              Next: Platinum Investor
-            </span>
-            <span className="text-amber-500 font-bold">₦500,000</span>
-          </div>
-        </div>
-        <div className="relative">
-          <div
-            className={`h-3 ${
-              darkMode ? "bg-zinc-800" : "bg-gray-200"
-            } rounded-full overflow-hidden`}
-          >
+          return (
             <div
-              className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-1000"
-              style={{ width: "65%" }}
-            />
-          </div>
-          <div
-            className={`flex justify-between mt-2 text-xs ${
-              darkMode ? "text-zinc-500" : "text-gray-400"
-            }`}
-          >
-            <span>Starter</span>
-            <span>Silver</span>
-            <span>Gold</span>
-            <span>Platinum</span>
-            <span>Diamond</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-4">
-          {["Starter", "Silver", "Gold", "Platinum", "Diamond"].map(
-            (tier, i) => (
-              <div
-                key={i}
-                className={`px-3 py-2 rounded-xl text-center text-xs font-medium ${
-                  i <= 2
-                    ? darkMode
-                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/20"
-                      : "bg-amber-50 text-amber-600 border border-amber-200"
-                    : darkMode
-                      ? "bg-zinc-800/50 text-zinc-500"
-                      : "bg-gray-100 text-gray-400"
-                }`}
-              >
-                {tier}
-                {i <= 2 && (
-                  <CheckCircle
-                    className={`w-3 h-3 inline ml-1 ${
-                      darkMode ? "text-amber-400" : "text-amber-600"
-                    }`}
-                  />
-                )}
-              </div>
-            ),
-          )}
-        </div>
-      </div>
-
-      {/* Equity Partner Advantages */}
-      <div
-        className={`${
-          darkMode
-            ? "bg-zinc-900/50 border-zinc-800"
-            : "bg-white border-gray-200"
-        } border rounded-2xl p-6`}
-      >
-        <h3
-          className={`font-semibold ${
-            darkMode ? "text-white" : "text-gray-900"
-          }`}
-        >
-          Equity Partner Advantages
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          {[
-            {
-              icon: Shield,
-              title: "Fractional Equity",
-              desc: "Own fractional equity in sovereign Web3 hardware built on steel & silicon",
-            },
-            {
-              icon: Smartphone,
-              title: "Early Access",
-              desc: "Early access to AfriTek Phone Pro fleet allocations",
-            },
-            {
-              icon: Crown,
-              title: "Priority Allocation",
-              desc: "Priority allocation on AfriTek Phone Pro units",
-            },
-            {
-              icon: BarChart3,
-              title: "On-Chain Earnings",
-              desc: "Web3-integrated earnings tracked on-chain",
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className={`flex items-start gap-3 p-4 ${
+              className={`${
                 darkMode
-                  ? "bg-zinc-800/50 hover:bg-zinc-800"
-                  : "bg-gray-50 hover:bg-amber-50"
-              } rounded-xl transition-colors`}
+                  ? "bg-zinc-900/50 border-zinc-800"
+                  : "bg-white border-gray-200"
+              } border rounded-2xl p-6`}
             >
-              <div
-                className={`p-2 rounded-lg ${
-                  darkMode
-                    ? "bg-amber-500/20 text-amber-400"
-                    : "bg-amber-100 text-amber-600"
-                } flex-shrink-0`}
-              >
-                <item.icon className="w-5 h-5" />
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                  <h3
+                    className={`font-semibold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Shares Sales Progress
+                  </h3>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-zinc-400" : "text-gray-500"
+                    }`}
+                  >
+                    {(totalShares - sold).toLocaleString()}{" "}
+                    shares left
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span
+                    className={darkMode ? "text-zinc-300" : "text-gray-700"}
+                  >
+                    Progress:
+                  </span>
+                  <span className="text-amber-500 font-bold">
+                    {percentage}%
+                  </span>
+                </div>
               </div>
-              <div>
-                <h4
-                  className={`font-medium text-sm ${
-                    darkMode ? "text-white" : "text-gray-900"
+              <div className="relative">
+                <div
+                  className={`h-3 ${
+                    darkMode ? "bg-zinc-800" : "bg-gray-200"
+                  } rounded-full overflow-hidden`}
+                >
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-1000"
+                    style={{ width: `${Math.min(Number(percentage), 100)}%` }}
+                  />
+                </div>
+                <div
+                  className={`flex justify-between mt-2 text-xs ${
+                    darkMode ? "text-zinc-500" : "text-gray-400"
                   }`}
                 >
-                  {item.title}
-                </h4>
-                <p
-                  className={`text-xs mt-0.5 ${
-                    darkMode ? "text-zinc-400" : "text-gray-500"
-                  }`}
-                >
-                  {item.desc}
-                </p>
+                  <span>
+                    {sold.toLocaleString()} shares sold
+                  </span>
+                  <span>{totalShares.toLocaleString()} Total Shares</span>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          );
+        })()}{" "}
     </div>
   );
 };

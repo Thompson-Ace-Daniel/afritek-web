@@ -1,8 +1,7 @@
 export const APP_NAME = import.meta.env.VITE_APP_NAME || "Afritek";
 
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  "https://afritek-mdr1.vercel.app/api/v1/auth";
+  import.meta.env.VITE_API_BASE_URL || "https://afritek-api.vercel.app/api/v1/auth";
 
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: "afritek_access_token",

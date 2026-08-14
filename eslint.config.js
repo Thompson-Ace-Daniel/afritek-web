@@ -8,6 +8,9 @@ export default [
   { ignores: ["dist", "node_modules", "build"] },
   {
     files: ["**/*.{js,jsx}"],
+    paths: {
+      "@/*": ["src/*"],
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
