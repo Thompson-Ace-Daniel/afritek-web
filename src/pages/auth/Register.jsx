@@ -27,6 +27,7 @@ export default function Register() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -40,18 +41,35 @@ export default function Register() {
     },
   });
 
-  // Automatically update and resolve referral code if present in query params
+  // Watch the actual referral code field value
+  const watchedRefCode = watch("referralCode");
+
+  // Sync refCode from query params and resolve referrer
   useEffect(() => {
+    const codeToResolve = refCode || watchedRefCode;
+
     if (refCode) {
-      setValue("referralCode", refCode);
+      // Force set the value in react-hook-form state
+      setValue("referralCode", refCode, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+
+    if (codeToResolve) {
       referralAPI
-        .resolve(refCode)
+        .resolve(codeToResolve)
         .then((res) => {
+          // Fixed path matching second component: res.data.data.valid
           if (res.data?.data?.valid) {
             setReferrerName(res.data.data.referrer.fullName);
+          } else {
+            setReferrerName("");
           }
         })
-        .catch(() => {});
+        .catch(() => setReferrerName(""));
+    } else {
+      setReferrerName("");
     }
   }, [refCode, setValue]);
 
@@ -59,7 +77,6 @@ export default function Register() {
     setServerError(null);
     setSubmitting(true);
 
-    // Build payload incorporating API rules and keeping role
     const payload = {
       fullName: data.fullName.trim(),
       email: data.email.trim().toLowerCase(),
@@ -78,7 +95,6 @@ export default function Register() {
       toast.success("Account created! Please sign in.");
       navigate(ROUTES.LOGIN, { replace: true });
     } catch (err) {
-      // Enhanced error extraction from response data or generic message
       const message =
         err.response?.data?.message ||
         err.response?.data?.errors?.[0]?.message ||
@@ -176,7 +192,10 @@ export default function Register() {
         />
 
         <p className="text-center my-2 text-sm text-neutral-300">
-          By continuing you agree to our <a className="underline" href="#">Terms & Conditions</a>
+          By continuing you agree to our{" "}
+          <a className="underline" href="#">
+            Terms & Conditions
+          </a>
         </p>
 
         <Button type="submit" fullWidth loading={submitting} size="lg">
