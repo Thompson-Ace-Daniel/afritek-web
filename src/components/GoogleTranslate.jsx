@@ -2,16 +2,13 @@ import { useEffect } from "react";
 
 export default function GoogleTranslate() {
   useEffect(() => {
-    // Prevent duplicate script loading
     const SCRIPT_ID = "google-translate-script";
 
-    // Google Translate callback must be globally accessible
     window.googleTranslateElementInit = () => {
       if (
         window.google?.translate?.TranslateElement &&
         document.getElementById("google_translate_element")
       ) {
-        // Prevent initializing more than once
         if (document.querySelector(".goog-te-combo")) return;
 
         new window.google.translate.TranslateElement(
@@ -27,7 +24,6 @@ export default function GoogleTranslate() {
       }
     };
 
-    // Load Google Translate script only once
     let script = document.getElementById(SCRIPT_ID);
 
     if (!script) {
@@ -39,11 +35,9 @@ export default function GoogleTranslate() {
 
       document.body.appendChild(script);
     } else {
-      // Script already loaded
       window.googleTranslateElementInit();
     }
 
-    // Handle RTL languages
     const handleLanguageChange = (event) => {
       if (!event.target?.classList?.contains("goog-te-combo")) return;
 
@@ -63,7 +57,7 @@ export default function GoogleTranslate() {
   return (
     <div
       id="google_translate_element"
-      className="flex items-center min-h-[38px]"
+      className="flex items-center w-full min-h-[38px]"
     />
   );
 }
