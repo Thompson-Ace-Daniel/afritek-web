@@ -115,7 +115,7 @@ export default function AppLayout() {
                     {label}
                   </Link>
                 ))}
-                <button
+                {/* <button
                   type="button"
                   onClick={handleLogout}
                   disabled={loggingOut}
@@ -123,7 +123,7 @@ export default function AppLayout() {
                 >
                   <LogOut className="h-4 w-4" />
                   {loggingOut ? "Logging out..." : "Logout"}
-                </button>
+                </button> */}
               </div>
             </motion.nav>
           )}
