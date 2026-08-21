@@ -35,7 +35,6 @@ import {
   ReferralTab,
 } from "./DashboardTabs";
 import { useAuth } from "../../hooks/useAuth";
-import GoogleTranslate from "@/components/GoogleTranslate";
 
 export default function Dashboard() {
   const [currentTab, setCurrentTab] = useState(
@@ -89,7 +88,8 @@ export default function Dashboard() {
 
       {/* ====== SIDEBAR ====== */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 ${
+        className={`fixed top-0 left-0 h-full w-72 sm:w-64 ${
+          // widened slightly on mobile for better touch targets, but kept 64 on larger
           darkMode
             ? "bg-zinc-950 border-r border-zinc-800"
             : "bg-white border-r border-gray-200"
@@ -100,24 +100,28 @@ export default function Dashboard() {
         <div className="flex flex-col h-full">
           {/* Header & Logo */}
           <div
-            className={`flex items-center justify-between p-6 ${
+            className={`flex items-center justify-between p-4 sm:p-6 ${
               darkMode ? "border-b border-zinc-800" : "border-b border-gray-200"
             }`}
           >
             <div className="flex items-center gap-3">
               <div className="text-black rounded-lg border-2 w-fit h-fit border-amber-400">
-                <img src={afriTech} alt="" className="w-12 h-10 rounded-md" />
+                <img
+                  src={afriTech}
+                  alt=""
+                  className="w-10 h-8 sm:w-12 sm:h-10 rounded-md"
+                />
               </div>
               <div>
                 <span
-                  className={`font-bold text-lg ${
+                  className={`font-bold text-base sm:text-lg ${
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
                   AfriTek
                 </span>
-                <span className="block text-[10px] text-amber-500 uppercase tracking-wider">
-                  Investment Platform
+                <span className="block text-[9px] sm:text-[10px] text-amber-500 uppercase tracking-wider">
+                  Investor Portal
                 </span>
               </div>
             </div>
@@ -138,12 +142,12 @@ export default function Dashboard() {
 
           {/* User Info */}
           <div
-            className={`p-4 ${
+            className={`p-3 sm:p-4 ${
               darkMode ? "border-b border-zinc-800" : "border-b border-gray-200"
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm sm:text-base">
                 {user?.fullName?.charAt(0) || "U"}
               </div>
               <div className="flex-1 min-w-0">
@@ -162,7 +166,7 @@ export default function Dashboard() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-3 sm:p-4 space-y-0.5 sm:space-y-1 overflow-y-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = currentTab === tab.id;
@@ -173,7 +177,7 @@ export default function Dashboard() {
                     setCurrentTab(tab.id);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  className={`w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all duration-200 text-sm sm:text-base ${
                     isActive
                       ? darkMode
                         ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
@@ -183,11 +187,11 @@ export default function Dashboard() {
                         : "text-gray-600 hover:bg-gray-100 border-none border-transparent"
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{tab.label}</span>
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="font-medium">{tab.label}</span>
                   {isActive && (
                     <div
-                      className={`ml-auto w-1.5 h-8 rounded-full ${
+                      className={`ml-auto w-1.5 h-6 sm:h-8 rounded-full ${
                         darkMode ? "bg-amber-400" : "bg-amber-500"
                       }`}
                     />
@@ -199,38 +203,35 @@ export default function Dashboard() {
 
           {/* Bottom Controls */}
           <div
-            className={`p-4 ${
+            className={`p-3 sm:p-4 ${
               darkMode ? "border-t border-zinc-800" : "border-t border-gray-200"
-            } space-y-3`}
+            } space-y-2 sm:space-y-3`}
           >
-            <GoogleTranslate />
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all ${
+              className={`w-full flex items-center gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all text-sm ${
                 darkMode
                   ? "hover:bg-zinc-800 text-zinc-400"
                   : "hover:bg-gray-100 text-gray-600"
               }`}
             >
               {darkMode ? (
-                <Sun className="w-5 h-5" />
+                <Sun className="w-5 h-5 flex-shrink-0" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <Moon className="w-5 h-5 flex-shrink-0" />
               )}
-              <span className="text-sm">
-                {darkMode ? "Light Mode" : "Dark Mode"}
-              </span>
+              <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
             </button>
             <button
               onClick={handleLogout}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all ${
+              className={`w-full flex items-center gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all text-sm ${
                 darkMode
                   ? "hover:bg-zinc-800 text-red-400"
                   : "hover:bg-gray-100 text-red-500"
               }`}
             >
-              <LogOut className="w-5 h-5" />
-              <span className="text-sm">Sign Out</span>
+              <LogOut className="w-5 h-5 flex-shrink-0" />
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
@@ -244,7 +245,7 @@ export default function Dashboard() {
             : "bg-white/90 border-b border-gray-200"
         } backdrop-blur-xl lg:hidden`}
       >
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-3 sm:p-4">
           <button
             onClick={() => setSidebarOpen(true)}
             className={`p-2 rounded-xl ${
@@ -258,31 +259,31 @@ export default function Dashboard() {
             <img
               src="/afritek-logo-transparent.png"
               alt="AfriTek's Logo"
-              className="h-8 w-8"
+              className="h-7 w-7 sm:h-8 sm:w-8"
             />
             <span
-              className={`font-bold text-sm ${
+              className={`font-bold text-sm sm:text-base ${
                 darkMode ? "text-white" : "text-gray-900"
               }`}
             >
               AfriTek
             </span>
           </div>
-
           <button
-            onClick={() => {
-              setCurrentTab("profile");
-            }}
-            className="w-10 h-10 rounded-xl cursor-pointer bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold"
+            onClick={handleLogout}
+            className={`p-2 rounded-xl ${
+              darkMode ? "hover:bg-zinc-800" : "hover:bg-gray-100"
+            } transition-colors`}
+            aria-label="Logout"
           >
-            {user?.fullName?.charAt(0) || "U"}
+            <LogOut className={darkMode ? "text-red-400" : "text-red-500"} />
           </button>
         </div>
       </header>
 
       {/* ====== MAIN CONTENT ====== */}
       <main className={`lg:ml-64 pt-16 lg:pt-0 min-h-screen pb-24 lg:pb-0`}>
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {currentTab === "dashboard" && (
             <DashboardTab
               darkMode={darkMode}
@@ -316,7 +317,7 @@ export default function Dashboard() {
             : "bg-white border-t border-gray-200"
         } lg:hidden`}
       >
-        <div className="flex items-center justify-around p-2">
+        <div className="flex items-center justify-around p-1.5 sm:p-2">
           {tabs.slice(0, 4).map((tab) => {
             const Icon = tab.icon;
             const isActive = currentTab === tab.id;
@@ -324,7 +325,7 @@ export default function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setCurrentTab(tab.id)}
-                className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all ${
+                className={`flex flex-col items-center gap-0.5 p-1.5 sm:p-2 rounded-xl transition-all ${
                   isActive
                     ? "text-amber-500"
                     : darkMode
@@ -333,7 +334,9 @@ export default function Dashboard() {
                 }`}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium">{tab.label}</span>
+                <span className="text-[9px] sm:text-[10px] font-medium">
+                  {tab.label}
+                </span>
               </button>
             );
           })}
