@@ -14,6 +14,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { referralAPI } from "../../api/auth.api.js";
+import { formatMoney, LEDGER_CURRENCY } from "../../utils/money";
 import { toast } from "react-hot-toast";
 
 export const ReferralTab = ({ darkMode }) => {
@@ -27,10 +28,11 @@ export const ReferralTab = ({ darkMode }) => {
     try {
       const res = await referralAPI.getMyStats();
       setStats(res.data?.data || null);
-      console.log("Referral Stats:", res.data?.data);
     } catch (err) {
       toast.error(
-        err.response?.data?.message || "Failed to load referral statistics",
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to load referral statistics",
       );
     } finally {
       setLoading(false);
@@ -41,14 +43,25 @@ export const ReferralTab = ({ darkMode }) => {
     fetchReferralStats();
   }, [fetchReferralStats]);
 
-  const handleCopy = () => {
-    if (stats?.referralLink) {
-      navigator.clipboard.writeText(
-        `http://${window.location.host}/register?ref=${stats?.referralCode || "No link generated"}`,
-      );
+  // Prefer the link the API builds (it knows the canonical FRONTEND_URL); fall
+  // back to this origin. The old version hardcoded `http://`, which produced a
+  // broken insecure link on the deployed https site.
+  const referralLink =
+    stats?.referralLink ||
+    (stats?.referralCode
+      ? `${window.location.origin}/register?ref=${stats.referralCode}`
+      : "");
+
+  const handleCopy = async () => {
+    if (!referralLink) return;
+
+    try {
+      await navigator.clipboard.writeText(referralLink);
       setCopied(true);
       toast.success("Referral link copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy — select the link and copy it manually.");
     }
   };
 
@@ -67,6 +80,12 @@ export const ReferralTab = ({ darkMode }) => {
       : "bg-green-50 text-green-600 border-green-200",
   };
 
+  // Commissions are a percentage of a USD purchase total, so earnings are USD.
+  // GET /referrals/stats states the currency; this renders what it says rather
+  // than the ₦ that used to be hardcoded here.
+  const currency = stats?.currency ?? LEDGER_CURRENCY;
+  const money = (value) => formatMoney(value, currency);
+
   const statCards = [
     {
       label: "Direct Referrals",
@@ -82,16 +101,22 @@ export const ReferralTab = ({ darkMode }) => {
     },
     {
       label: "Total Earnings",
-      value: `₦${(stats?.totalReferralEarnings ?? 0).toLocaleString()}`,
+      value: money(stats?.totalReferralEarnings ?? 0),
       icon: Gift,
       color: "amber",
     },
     {
       label: "Wallet Balance",
-      value: `₦${(stats?.balance ?? 0).toLocaleString()}`,
+      value: money(stats?.balance ?? 0),
       icon: Wallet,
       color: "green",
     },
+  ];
+
+  // Both commission levels in one list so the tree is visible end to end.
+  const allReferrals = [
+    ...(stats?.level1Users || []),
+    ...(stats?.level2Users || []),
   ];
 
   return (
@@ -179,13 +204,13 @@ export const ReferralTab = ({ darkMode }) => {
                 <Loader2 className="w-4 h-4 animate-spin" /> Generating link...
               </div>
             ) : (
-              `http://${window.location.host}/register?ref=${stats?.referralCode || "No link generated"}`
+              referralLink || "No link generated"
             )}
           </div>
 
           <button
             onClick={handleCopy}
-            disabled={!stats?.referralLink || loading}
+            disabled={!referralLink || loading}
             className={`px-4 sm:px-6 py-2.5 sm:py-3 ${
               darkMode
                 ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
@@ -300,6 +325,9 @@ export const ReferralTab = ({ darkMode }) => {
             >
               Level 1 Direct Commission
             </p>
+            <p className="text-xs font-semibold text-green-500 mt-1">
+              Earned {money(stats?.earnings?.level1 ?? 0)}
+            </p>
           </div>
 
           <div
@@ -324,6 +352,9 @@ export const ReferralTab = ({ darkMode }) => {
             >
               Level 2 Secondary Commission
             </p>
+            <p className="text-xs font-semibold text-green-500 mt-1">
+              Earned {money(stats?.earnings?.level2 ?? 0)}
+            </p>
           </div>
         </div>
       </div>
@@ -341,18 +372,28 @@ export const ReferralTab = ({ darkMode }) => {
             darkMode ? "text-white" : "text-gray-900"
           } mb-3 sm:mb-4`}
         >
-          Direct Referred Users
+          My Referral Network
+          {allReferrals.length > 0 && (
+            <span
+              className={`ml-2 text-xs font-normal ${
+                darkMode ? "text-zinc-400" : "text-gray-500"
+              }`}
+            >
+              {stats?.directReferrals ?? 0} direct · {stats?.secondLevelReferrals ?? 0}{" "}
+              second level
+            </span>
+          )}
         </h3>
 
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
           </div>
-        ) : stats?.level1Users?.length > 0 ? (
+        ) : allReferrals.length > 0 ? (
           <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
-            {stats.level1Users.map((refUser, idx) => (
+            {allReferrals.map((refUser, idx) => (
               <div
-                key={refUser.uid || refUser._id || idx}
+                key={refUser.uid || idx}
                 className={`flex flex-wrap items-center justify-between gap-2 p-3 sm:p-3.5 ${
                   darkMode ? "bg-zinc-800/50" : "bg-gray-50"
                 } rounded-xl border ${
@@ -362,10 +403,14 @@ export const ReferralTab = ({ darkMode }) => {
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div
                     className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full ${
-                      darkMode ? "bg-zinc-700" : "bg-amber-100"
-                    } flex items-center justify-center font-bold ${
-                      darkMode ? "text-white" : "text-amber-700"
-                    } text-xs sm:text-sm`}
+                      refUser.level === 2
+                        ? darkMode
+                          ? "bg-blue-500/20 text-blue-300"
+                          : "bg-blue-100 text-blue-700"
+                        : darkMode
+                          ? "bg-zinc-700 text-white"
+                          : "bg-amber-100 text-amber-700"
+                    } flex items-center justify-center font-bold text-xs sm:text-sm`}
                   >
                     {refUser.fullName?.charAt(0) || "U"}
                   </div>
@@ -383,13 +428,24 @@ export const ReferralTab = ({ darkMode }) => {
                       }`}
                     >
                       {refUser.email || "No email provided"}
+                      {refUser.sharesOwned > 0 && (
+                        <span className="ml-1 text-green-500">
+                          · {refUser.sharesOwned.toLocaleString()} shares
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 text-[10px] sm:text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full font-medium whitespace-nowrap">
+                <div
+                  className={`flex items-center gap-1 text-[10px] sm:text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${
+                    refUser.level === 2
+                      ? "text-blue-400 bg-blue-500/10"
+                      : "text-green-500 bg-green-500/10"
+                  }`}
+                >
                   <UserCheck className="w-3.5 h-3.5" />
-                  <span>Level 1</span>
+                  <span>Level {refUser.level ?? 1}</span>
                 </div>
               </div>
             ))}
@@ -402,7 +458,7 @@ export const ReferralTab = ({ darkMode }) => {
               } mx-auto mb-2`}
             />
             <p className={darkMode ? "text-zinc-400" : "text-gray-500"}>
-              No direct referrals registered yet.
+              No referrals registered yet.
             </p>
             <p
               className={`text-xs ${

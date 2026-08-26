@@ -12,6 +12,27 @@ import PasswordInput from "../../components/PasswordInput";
 import Button from "../../components/Button";
 import ErrorAlert from "../../components/ErrorAlert";
 
+/**
+ * Where to land after a successful login.
+ *
+ * ProtectedRoute passes the origin through router state, but the axios
+ * interceptor does a full page load on session expiry and can only pass a
+ * `?redirect=` query param — that path was being written and never read, so an
+ * expired session always dumped the user on the dashboard, losing (for example)
+ * the payment reference in /payment/callback?reference=SHR_…
+ *
+ * Only same-site relative paths are accepted, so the param cannot bounce a
+ * freshly authenticated user off to another origin.
+ */
+const safeRedirect = (value) => {
+  if (!value) return null;
+
+  const path = value.startsWith("/") ? value : `/${value}`;
+
+  // Rejects "//evil.com" and "/\evil.com", which browsers treat as absolute.
+  return /^\/[^/\\]/.test(path) ? path : null;
+};
+
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -42,7 +63,10 @@ export default function Login() {
         remember: data.remember,
       });
       toast.success("Welcome back!");
-      const redirectTo = location.state?.from || ROUTES.DASHBOARD;
+      const redirectTo =
+        location.state?.from ||
+        safeRedirect(new URLSearchParams(location.search).get("redirect")) ||
+        ROUTES.DASHBOARD;
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setServerError({

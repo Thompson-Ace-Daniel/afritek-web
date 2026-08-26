@@ -26,6 +26,47 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+/**
+ * Normalise a rejection into a real Error that keeps BOTH shapes readable:
+ * `err.message` for new code, and `err.response.data.message` for the many
+ * components that read the raw axios shape.
+ *
+ * This interceptor used to reject a bare object literal, so every
+ * `err.response?.data?.message` in the app evaluated to undefined and users only
+ * ever saw the generic fallback toast ("Purchase failed", "Verification
+ * failed") instead of the real reason the request was rejected.
+ */
+const normalizeError = ({ message, status, errors, data, isNetworkError }) => {
+  const error = new Error(message);
+  error.status = status ?? null;
+  error.errors = errors || [];
+  error.isNetworkError = Boolean(isNetworkError);
+  error.data = data ?? null;
+  error.response = status ? { status, data: data ?? { message, errors } } : undefined;
+  return error;
+};
+
+// The auth routes live under /auth on the API; API_BASE_URL points at the
+// version root (…/api/v1). Build the refresh URL from both, tolerating a
+// trailing slash on the configured base.
+const REFRESH_URL = `${API_BASE_URL.replace(/\/+$/, "")}/auth/refresh-token`;
+
+/**
+ * Bounce to login, preserving where the user was.
+ *
+ * The query string matters as much as the path: a session that expires while the
+ * buyer is at a payment gateway returns to /payment/callback?reference=SHR_…, and
+ * dropping the search here threw that reference away, leaving a paid purchase
+ * with no way to be verified.
+ */
+const redirectToLogin = () => {
+  if (typeof window === 'undefined') return;
+  if (window.location.pathname.includes('/login')) return;
+
+  const returnTo = `${window.location.pathname}${window.location.search}`.replace(/^\//, '');
+  window.location.href = `/login?redirect=${encodeURIComponent(returnTo)}`;
+};
+
 api.interceptors.request.use(
   (config) => {
     const token = tokenService.getAccessToken();
@@ -43,10 +84,12 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (!error.response) {
-      return Promise.reject({
-        message: 'Network error. Please check your connection.',
-        isNetworkError: true,
-      });
+      return Promise.reject(
+        normalizeError({
+          message: 'Network error. Please check your connection.',
+          isNetworkError: true,
+        })
+      );
     }
 
     const { status, data } = error.response;
@@ -54,12 +97,7 @@ api.interceptors.response.use(
 
     if (status === HTTP_STATUS.UNAUTHORIZED && originalRequest && !originalRequest._retry) {
       if (originalRequest.url?.includes('/login') || originalRequest.url?.includes('/refresh-token')) {
-        return Promise.reject({
-          message,
-          status,
-          errors: data?.errors,
-          data,
-        });
+        return Promise.reject(normalizeError({ message, status, errors: data?.errors, data }));
       }
 
       if (isRefreshing) {
@@ -82,18 +120,18 @@ api.interceptors.response.use(
         isRefreshing = false;
         tokenService.clear();
         storage.clearAll();
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname.replace(/^\//, ''))}`;
-        }
-        return Promise.reject({
-          message: 'Session expired. Please log in again.',
-          status: HTTP_STATUS.UNAUTHORIZED,
-        });
+        redirectToLogin();
+        return Promise.reject(
+          normalizeError({
+            message: 'Session expired. Please log in again.',
+            status: HTTP_STATUS.UNAUTHORIZED,
+          })
+        );
       }
 
       try {
         const response = await axios.post(
-          `${API_BASE_URL}/refresh-token`,
+          REFRESH_URL,
           { refreshToken },
           {
             headers: { 'Content-Type': 'application/json' },
@@ -122,24 +160,19 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         tokenService.clear();
         storage.clearAll();
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname.replace(/^\//, ''))}`;
-        }
-        return Promise.reject({
-          message: 'Session expired. Please log in again.',
-          status: HTTP_STATUS.UNAUTHORIZED,
-        });
+        redirectToLogin();
+        return Promise.reject(
+          normalizeError({
+            message: 'Session expired. Please log in again.',
+            status: HTTP_STATUS.UNAUTHORIZED,
+          })
+        );
       } finally {
         isRefreshing = false;
       }
     }
 
-    return Promise.reject({
-      message,
-      status,
-      errors: data?.errors,
-      data,
-    });
+    return Promise.reject(normalizeError({ message, status, errors: data?.errors, data }));
   }
 );
 

@@ -74,11 +74,32 @@ export const shareAPI = {
   getMyShares() {
     return api.get("/shares/me");
   },
-  buy(body) {
-    return api.post("/shares/buy", body);
+
+  /**
+   * Start a purchase. Returns a gateway authorizationUrl (Paystack/PayPal) or a
+   * clientSecret (Stripe), plus the reference used to verify later.
+   */
+  buy({ quantity, gateway }) {
+    return api.post("/shares/buy", {
+      action: "initiate",
+      quantity: Number(quantity),
+      gateway,
+    });
   },
-  verifyPaystack(reference) {
-    return api.post("/shares/verify/paystack", { reference });
+
+  /**
+   * Confirm a payment with the gateway and credit the shares.
+   *
+   * The backend exposes this as the `verify` mode of POST /shares/buy — there is
+   * no /shares/verify/:gateway route, and calling one 404s, which is why a
+   * successful payment used to leave shares uncredited.
+   */
+  verify({ reference, orderId } = {}) {
+    return api.post("/shares/buy", {
+      action: "verify",
+      reference,
+      ...(orderId ? { orderId } : {}),
+    });
   },
 };
 
@@ -87,8 +108,10 @@ export const walletAPI = {
   get() {
     return api.get("/wallet");
   },
-  deposit(body) {
-    return api.post("/wallet/deposit", body);
+  // Admin-only manual credit. Regular users get 403; balance is earned through
+  // referral commissions on verified purchases, not self-service deposits.
+  adminCredit(body) {
+    return api.post("/wallet/credit", body);
   },
 };
 

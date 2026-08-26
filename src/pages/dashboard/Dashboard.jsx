@@ -43,6 +43,8 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [showBuySharesModal, setShowBuySharesModal] = useState(false);
+  // Bumped after a verified purchase to force the data tabs to refetch.
+  const [dataVersion, setDataVersion] = useState(0);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -286,13 +288,14 @@ export default function Dashboard() {
         <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {currentTab === "dashboard" && (
             <DashboardTab
+              key={`dashboard-${dataVersion}`}
               darkMode={darkMode}
               user={user}
               onBuyShares={() => setShowBuySharesModal(true)}
             />
           )}
           {currentTab === "wallet" && (
-            <WalletTab darkMode={darkMode} user={user} />
+            <WalletTab key={`wallet-${dataVersion}`} darkMode={darkMode} user={user} />
           )}
           {currentTab === "withdrawals" && (
             <WithdrawalsTab darkMode={darkMode} user={user} />
@@ -348,6 +351,10 @@ export default function Dashboard() {
         isOpen={showBuySharesModal}
         onClose={() => setShowBuySharesModal(false)}
         darkMode={darkMode}
+        // Remount the dashboard tab so freshly credited shares show immediately;
+        // without this the modal closed on a successful verify and the figures
+        // behind it stayed stale until a full page reload.
+        onSuccess={() => setDataVersion((v) => v + 1)}
       />
     </div>
   );

@@ -12,8 +12,12 @@ import {
 } from "lucide-react";
 import { shareAPI } from "../../api/auth.api.js";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../../hooks/useAuth";
+import { savePendingPayment } from "../../utils/pendingPayment";
+import { formatMoney, LEDGER_CURRENCY, describeCharge } from "../../utils/money";
 
 export const BuySharesTab = ({ darkMode }) => {
+  const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [shareInfo, setShareInfo] = useState(null);
 
@@ -41,10 +45,24 @@ export const BuySharesTab = ({ darkMode }) => {
     fetchMarketInfo();
   }, []);
 
-  const sharePrice = shareInfo?.pricePerShare || 1250;
-  const subtotal = quantity * sharePrice;
-  const platformFee = Math.round(subtotal * 0.01);
-  const total = subtotal + platformFee;
+  // No fabricated fallback price — the real one comes from GET /shares.
+  const sharePrice = shareInfo?.pricePerShare ?? null;
+  const remainingShares = shareInfo?.remainingShares ?? null;
+  const subtotal = sharePrice === null ? null : quantity * sharePrice;
+
+  // The backend charges quantity × pricePerShare exactly, with no fee added, so
+  // quoting a 1% platform fee here made the gateway amount disagree with the
+  // total the buyer had just approved.
+  const total = subtotal;
+
+  const exceedsSupply = remainingShares !== null && quantity > remainingShares;
+  const canBuy = !buying && sharePrice !== null && quantity >= 1 && !exceedsSupply;
+
+  // Shares are priced in whatever GET /shares says — currently USD. Reading the
+  // currency off the response rather than hardcoding a symbol is what keeps this
+  // screen from quoting "₦20" for a $20 share after a repricing.
+  const currency = shareInfo?.currency ?? LEDGER_CURRENCY;
+  const money = (value) => formatMoney(value, currency);
 
   const handleQuantityChange = (delta) => {
     setQuantity((prev) => Math.max(1, prev + delta));
@@ -60,14 +78,34 @@ export const BuySharesTab = ({ darkMode }) => {
         gateway: "paystack",
       });
 
-      setPaymentData(data.data);
-      toast.success(data.message || "Purchase initiated successfully!");
+      const payment = data.data;
+      setPaymentData(payment);
 
-      if (data.data?.authorizationUrl) {
-        window.open(data.data.authorizationUrl, "_blank");
+      // Stash the reference so /payment/callback can verify even if the gateway
+      // does not echo it back on the return trip.
+      if (payment?.reference) {
+        savePendingPayment({
+          reference: payment.reference,
+          gateway: "paystack",
+          quantity: payment.quantity ?? Number(quantity),
+          amount: payment.amount,
+          currency: payment.currency,
+          uid: user?.uid,
+        });
       }
+
+      // Same tab: window.open after an await is outside the click gesture and
+      // gets blocked, and redirecting here means the gateway returns the buyer
+      // to /payment/callback, which verifies and credits the shares.
+      if (payment?.authorizationUrl) {
+        toast.success("Redirecting you to complete payment…");
+        window.location.assign(payment.authorizationUrl);
+        return;
+      }
+
+      toast.success(data.message || "Purchase initiated successfully!");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Purchase failed");
+      toast.error(err.response?.data?.message || err.message || "Purchase failed");
     } finally {
       setBuying(false);
     }
@@ -120,8 +158,9 @@ export const BuySharesTab = ({ darkMode }) => {
                     darkMode ? "text-zinc-400" : "text-gray-500"
                   }`}
                 >
-                  ₦{sharePrice.toLocaleString()}
-                  <span className="text-green-500 ml-2">+4.82% Today</span>
+                  {fetchingInfo || sharePrice === null
+                    ? "Loading…"
+                    : money(sharePrice)}
                 </p>
               </div>
             </div>
@@ -234,13 +273,20 @@ export const BuySharesTab = ({ darkMode }) => {
                   darkMode ? "text-amber-400" : "text-amber-600"
                 }`}
               >
-                ₦{total.toLocaleString()}
+                {money(total)}
               </span>
             </div>
 
+            {exceedsSupply && (
+              <p className="mb-3 text-xs text-red-400">
+                Only {remainingShares.toLocaleString()} shares remain — reduce the
+                quantity to continue.
+              </p>
+            )}
+
             <button
               onClick={handleBuy}
-              disabled={buying}
+              disabled={!canBuy}
               className="w-full py-2.5 sm:py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
             >
               {buying ? (
@@ -313,7 +359,7 @@ export const BuySharesTab = ({ darkMode }) => {
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  ₦{sharePrice.toLocaleString()}
+                  {money(sharePrice)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-zinc-800">
@@ -341,22 +387,16 @@ export const BuySharesTab = ({ darkMode }) => {
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  ₦{subtotal.toLocaleString()}
+                  {money(subtotal)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-zinc-800">
                 <span
                   className={`text-sm ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
                 >
-                  Platform Fee (1%)
+                  Fees
                 </span>
-                <span
-                  className={`text-sm font-medium ${
-                    darkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  ₦{platformFee.toLocaleString()}
-                </span>
+                <span className="text-sm font-medium text-green-500">None</span>
               </div>
               <div className="flex justify-between py-2">
                 <span
@@ -364,16 +404,32 @@ export const BuySharesTab = ({ darkMode }) => {
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  Estimated Total
+                  Amount Due
                 </span>
                 <span
                   className={`text-lg sm:text-xl font-bold ${
                     darkMode ? "text-amber-400" : "text-amber-600"
                   }`}
                 >
-                  ₦{total.toLocaleString()}
+                  {money(total)}
                 </span>
               </div>
+
+              {/* Shares are priced in USD but this tab pays via Paystack, which
+                  can only bill Naira. The exact Naira figure depends on the rate
+                  the server resolves at checkout, so it is not knowable here —
+                  saying so is better than showing a converted number that the
+                  gateway might then disagree with. */}
+              {currency !== "NGN" && (
+                <p
+                  className={`pt-2 text-[10px] sm:text-xs ${
+                    darkMode ? "text-zinc-500" : "text-gray-500"
+                  }`}
+                >
+                  Paystack settles in Naira. You will be shown the exact Naira
+                  amount, at the current rate, before you confirm payment.
+                </p>
+              )}
             </div>
           </div>
 
@@ -387,6 +443,11 @@ export const BuySharesTab = ({ darkMode }) => {
                 Reference:{" "}
                 <code className="text-white">{paymentData.reference}</code>
               </p>
+              {describeCharge(paymentData) && (
+                <p className="text-[10px] sm:text-xs text-zinc-400 mb-2">
+                  {describeCharge(paymentData)}
+                </p>
+              )}
               {paymentData.authorizationUrl && (
                 <a
                   href={paymentData.authorizationUrl}

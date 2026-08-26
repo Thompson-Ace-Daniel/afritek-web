@@ -13,12 +13,33 @@ import {
 } from "lucide-react";
 import { shareAPI } from "../../api/auth.api.js";
 import { toast } from "react-hot-toast";
+import { StripeCheckout } from "../payment/StripeCheckout.jsx";
+import { useAuth } from "../../hooks/useAuth";
+import {
+  normalizeReference,
+  savePendingPayment,
+  clearPendingPayment,
+  readPendingPayments,
+} from "../../utils/pendingPayment";
+import { formatMoney, LEDGER_CURRENCY, describeCharge } from "../../utils/money";
+
+/** "3 hours ago" — enough to tell a stale attempt from the one just made. */
+const timeAgo = (savedAt) => {
+  const minutes = Math.floor((Date.now() - savedAt) / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+};
 
 export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
+  const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [paymentGateway, setPaymentGateway] = useState("paystack");
   const [referenceCode, setReferenceCode] = useState("");
   const [shareInfo, setShareInfo] = useState(null);
+  const [pending, setPending] = useState([]);
 
   // Loading & process states
   const [fetchingInfo, setFetchingInfo] = useState(false);
@@ -46,16 +67,45 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
     }
   }, [isOpen]);
 
+  // Re-read on open so a payment abandoned earlier (or in another tab) shows up
+  // as something the buyer can act on.
+  useEffect(() => {
+    if (isOpen) setPending(readPendingPayments(user?.uid));
+  }, [isOpen, user?.uid]);
+
+  // A PaymentIntent/checkout is priced for the exact order that created it, so a
+  // changed quantity or gateway must invalidate it — otherwise the buyer could
+  // pay the old amount on a form that now shows a different total.
+  useEffect(() => {
+    setPaymentData(null);
+  }, [quantity, paymentGateway]);
+
   if (!isOpen) return null;
 
-  const sharePrice = shareInfo?.pricePerShare || 1250;
-  const subtotal = quantity * sharePrice;
-  const platformFee = Math.round(subtotal * 0.01);
-  const total = subtotal + platformFee;
+  // No fabricated fallback price: showing $1,250 while the API reports $20 makes
+  // the gateway's amount look wrong to the buyer. Show nothing until the real
+  // price has loaded.
+  const sharePrice = shareInfo?.pricePerShare ?? null;
+  const remainingShares = shareInfo?.remainingShares ?? null;
+  const subtotal = sharePrice === null ? null : quantity * sharePrice;
+
+  // The backend charges quantity × pricePerShare exactly (payment.service.js
+  // resolves the price through shareService.getPriceUsd()). A 1% "platform fee"
+  // was being added to the displayed total only, so the amount on the gateway
+  // never matched what the buyer was quoted here.
+  const total = subtotal;
+
+  const exceedsSupply = remainingShares !== null && quantity > remainingShares;
+  const canBuy = !buying && sharePrice !== null && quantity >= 1 && !exceedsSupply;
 
   const handleQuantityChange = (delta) => {
     setQuantity((prev) => Math.max(1, prev + delta));
   };
+
+  // Shares are priced in whatever GET /shares reports — currently USD. Paystack
+  // then bills the Naira equivalent, which is why the charge notice below exists.
+  const currency = shareInfo?.currency ?? LEDGER_CURRENCY;
+  const money = (value) => formatMoney(value, currency);
 
   // Initiate purchase request via API
   const handleBuy = async () => {
@@ -67,41 +117,100 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
         gateway: paymentGateway,
       });
 
-      setPaymentData(data.data);
+      const payment = data.data;
+      setPaymentData(payment);
+
+      if (payment?.reference) {
+        setReferenceCode(payment.reference);
+
+        // Stash before handing off. PayPal returns token/PayerID and Stripe
+        // returns payment_intent/redirect_status — neither echoes the reference
+        // that POST /shares/buy requires to verify.
+        savePendingPayment({
+          reference: payment.reference,
+          gateway: paymentGateway,
+          quantity: payment.quantity ?? Number(quantity),
+          amount: payment.amount,
+          currency: payment.currency,
+          uid: user?.uid,
+        });
+        setPending(readPendingPayments(user?.uid));
+      }
+
+      // Same tab, not window.open: this runs after an await so it is no longer
+      // inside the click gesture and popup blockers eat the new window. It also
+      // means the gateway's callback_url lands back on our /payment/callback
+      // route, which auto-verifies and credits the shares.
+      if (payment?.authorizationUrl) {
+        toast.success("Redirecting you to complete payment…");
+        window.location.assign(payment.authorizationUrl);
+        return;
+      }
+
+      // Stripe hands back a PaymentIntent to confirm in-page rather than a
+      // redirect, so the card form below takes over from here.
+      if (payment?.clientSecret) {
+        toast.success("Enter your card details to finish paying.");
+        return;
+      }
+
       toast.success(data.message || "Purchase initiated successfully!");
-
-      if (data.data?.reference) {
-        setReferenceCode(data.data.reference);
-      }
-
-      if (data.data?.authorizationUrl) {
-        window.open(data.data.authorizationUrl, "_blank");
-      }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Purchase failed");
+      toast.error(err.response?.data?.message || err.message || "Purchase failed");
     } finally {
       setBuying(false);
     }
   };
 
-  // Verify Paystack transaction via API
-  const handleVerifyPayment = async () => {
-    if (!referenceCode.trim()) {
+  /**
+   * Confirm a completed payment and credit the shares.
+   *
+   * Shared by the inline Stripe confirmation and the manual "Already paid?" box.
+   * Fulfilment is entirely server-side — the API re-checks the reference with the
+   * gateway before crediting anything.
+   */
+  const verifyReference = async (rawReference) => {
+    const reference = normalizeReference(rawReference);
+
+    if (!reference) {
       toast.error("Please enter a reference code");
       return;
     }
 
     setVerifying(true);
     try {
-      const { data } = await shareAPI.verifyPaystack(referenceCode);
-      toast.success(data.message || "Payment verified successfully!");
+      const { data } = await shareAPI.verify({ reference });
+      const credited = data?.data?.shares?.sharesOwned;
+
+      toast.success(
+        credited !== undefined
+          ? `${data.message || "Payment verified"} — you now own ${Number(credited).toLocaleString()} shares.`
+          : data.message || "Payment verified successfully!",
+      );
+
+      clearPendingPayment(reference);
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Verification failed");
+      // A 404 means no payment carries this reference, so keeping it in the
+      // recovery list would only invite the buyer to retry something that can
+      // never succeed. Any other failure may well be transient — keep it.
+      if (err.status === 404) {
+        clearPendingPayment(reference);
+      }
+      setPending(readPendingPayments(user?.uid));
+
+      toast.error(err.response?.data?.message || err.message || "Verification failed");
     } finally {
       setVerifying(false);
     }
+  };
+
+  const handleVerifyPayment = () => verifyReference(referenceCode);
+
+  const dismissPending = (reference) => {
+    clearPendingPayment(reference);
+    setPending(readPendingPayments(user?.uid));
   };
 
   return (
@@ -176,8 +285,9 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                     darkMode ? "text-zinc-400" : "text-gray-500"
                   }`}
                 >
-                  ₦{sharePrice.toLocaleString()}
-                  <span className="text-green-500 ml-2">+4.82% Today</span>
+                  {fetchingInfo || sharePrice === null
+                    ? "Loading…"
+                    : money(sharePrice)}
                 </p>
               </div>
             </div>
@@ -294,11 +404,17 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                 } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
               >
                 <option value="paystack">Paystack</option>
-                <option value="stripe">Stripe</option>
-                <option value="paypal">Paypal</option>
-                <option value="wallet">Wallet</option>
+                <option value="stripe">Stripe (card, USD)</option>
+                <option value="paypal">PayPal (USD)</option>
               </select>
             </div>
+
+            {exceedsSupply && (
+              <p className="mb-3 text-xs text-red-400">
+                Only {remainingShares.toLocaleString()} shares remain — reduce the quantity
+                to continue.
+              </p>
+            )}
 
             <div className="flex items-center justify-between py-3 sm:py-4 border-t border-zinc-800">
               <span
@@ -313,13 +429,13 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                   darkMode ? "text-amber-400" : "text-amber-600"
                 }`}
               >
-                ₦{total.toLocaleString()}
+                {money(total)}
               </span>
             </div>
 
             <button
               onClick={handleBuy}
-              disabled={buying}
+              disabled={!canBuy}
               className="w-full py-2.5 sm:py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
             >
               {buying ? (
@@ -328,7 +444,7 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                   Initiating...
                 </>
               ) : (
-                "Review Purchase →"
+                "Continue to Payment →"
               )}
             </button>
 
@@ -390,7 +506,7 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  ₦{sharePrice.toLocaleString()}
+                  {money(sharePrice)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-zinc-800">
@@ -418,22 +534,16 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  ₦{subtotal.toLocaleString()}
+                  {money(subtotal)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-zinc-800">
                 <span
                   className={`text-sm ${darkMode ? "text-zinc-400" : "text-gray-500"}`}
                 >
-                  Platform Fee (1%)
+                  Fees
                 </span>
-                <span
-                  className={`text-sm font-medium ${
-                    darkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  ₦{platformFee.toLocaleString()}
-                </span>
+                <span className="text-sm font-medium text-green-500">None</span>
               </div>
               <div className="flex justify-between py-2">
                 <span
@@ -441,16 +551,31 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  Estimated Total
+                  Amount Due
                 </span>
                 <span
                   className={`text-lg sm:text-xl font-bold ${
                     darkMode ? "text-amber-400" : "text-amber-600"
                   }`}
                 >
-                  ₦{total.toLocaleString()}
+                  {money(total)}
                 </span>
               </div>
+
+              {/* Paystack cannot bill USD, so it collects the Naira equivalent at
+                  a rate the server resolves when the payment is initiated. The
+                  exact figure is therefore not knowable until then — this says so
+                  rather than showing a converted number the gateway may not match. */}
+              {currency !== "NGN" && paymentGateway === "paystack" && (
+                <p
+                  className={`pt-2 text-[10px] sm:text-xs ${
+                    darkMode ? "text-zinc-500" : "text-gray-500"
+                  }`}
+                >
+                  Paystack settles in Naira. The exact Naira amount and the rate
+                  used are shown before you confirm payment.
+                </p>
+              )}
             </div>
 
             {/* Payment Link Banner */}
@@ -463,6 +588,14 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                   Reference:{" "}
                   <code className="text-white">{paymentData.reference}</code>
                 </p>
+                {/* The pinned quote: what will actually be debited, and at what
+                    rate. Null for the USD gateways, where there is nothing to
+                    explain. */}
+                {describeCharge(paymentData) && (
+                  <p className="text-[10px] sm:text-xs text-zinc-300 mb-2 font-medium">
+                    {describeCharge(paymentData)}
+                  </p>
+                )}
                 {paymentData.authorizationUrl && (
                   <a
                     href={paymentData.authorizationUrl}
@@ -474,38 +607,129 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
-                {paymentData.clientSecret && (
-                  <p className="text-[10px] sm:text-xs text-zinc-400 mt-1 break-all">
-                    Paystack Client Secret:{" "}
-                    <code>{paymentData.clientSecret}</code>
-                  </p>
-                )}
+              </div>
+            )}
+
+            {/* Stripe collects the card in-page — there is no redirect to follow. */}
+            {paymentData?.clientSecret && (
+              <div className="mt-4 sm:mt-6">
+                <h4
+                  className={`text-sm font-semibold ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  } mb-3`}
+                >
+                  Pay by card
+                </h4>
+                <StripeCheckout
+                  clientSecret={paymentData.clientSecret}
+                  publicKey={paymentData.publicKey}
+                  darkMode={darkMode}
+                  amountLabel={money(paymentData.amount ?? total)}
+                  onConfirmed={() => verifyReference(paymentData.reference)}
+                />
               </div>
             )}
 
             {/* Verification Section */}
             <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-zinc-800">
+              {/* Recover a payment the buyer never saw confirmed — a closed tab,
+                  an interrupted redirect, a phone that went to sleep. The API has
+                  no "list my payments" endpoint, so this local record is the only
+                  way to hand the reference back to them. */}
+              {pending.length > 0 && (
+                <div className="mb-4 sm:mb-5">
+                  <h4
+                    className={`text-sm font-semibold ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } mb-1`}
+                  >
+                    Unconfirmed payments
+                  </h4>
+                  <p
+                    className={`text-[10px] sm:text-xs ${
+                      darkMode ? "text-zinc-400" : "text-gray-500"
+                    } mb-2`}
+                  >
+                    Orders you started but we never saw confirmed. If you paid, verify
+                    here to get your shares — you will not be charged again.
+                  </p>
+
+                  <div className="space-y-2">
+                    {pending.map((entry) => (
+                      <div
+                        key={entry.reference}
+                        className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border ${
+                          darkMode
+                            ? "bg-zinc-800/50 border-zinc-700"
+                            : "bg-amber-50 border-amber-200"
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <code
+                            className={`block text-[10px] sm:text-xs truncate ${
+                              darkMode ? "text-amber-300" : "text-amber-700"
+                            }`}
+                          >
+                            {entry.reference}
+                          </code>
+                          <p className="text-[10px] text-zinc-500 truncate">
+                            {[
+                              entry.gateway,
+                              entry.quantity ? `${entry.quantity} shares` : null,
+                              entry.amount !== null ? money(entry.amount) : null,
+                              timeAgo(entry.savedAt),
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => verifyReference(entry.reference)}
+                          disabled={verifying}
+                          className="px-3 py-1.5 bg-amber-500 text-white text-[10px] sm:text-xs font-semibold rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                          {verifying ? "…" : "Verify"}
+                        </button>
+                        <button
+                          onClick={() => dismissPending(entry.reference)}
+                          aria-label={`Dismiss ${entry.reference}`}
+                          className="p-1 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <h4
                 className={`text-sm font-semibold ${
                   darkMode ? "text-white" : "text-gray-900"
                 } mb-2`}
               >
-                Verify Paystack Payment
+                Already paid? Verify here
               </h4>
               <p
                 className={`text-[10px] sm:text-xs ${
                   darkMode ? "text-zinc-400" : "text-gray-500"
                 } mb-3`}
               >
-                If you've completed the payment via Paystack, enter your
-                reference code below.
+                You are normally verified automatically when the gateway returns you to
+                the site. If that was interrupted and the order is not listed above,
+                paste its reference — Paystack includes it in the receipt it emails you.
+                Otherwise contact support and we will look it up.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
                   value={referenceCode}
-                  onChange={(e) => setReferenceCode(e.target.value)}
-                  placeholder="e.g. SHR_ABC123"
+                  // Uppercased as you type: the API validates against
+                  // /^SHR_[A-Z0-9]{16}$/, so a pasted lowercase reference would
+                  // 422 for a reason the buyer cannot see.
+                  onChange={(e) => setReferenceCode(normalizeReference(e.target.value))}
+                  placeholder="e.g. SHR_9F2A7C41B8E63D05"
                   className={`w-full sm:flex-1 ${
                     darkMode
                       ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"

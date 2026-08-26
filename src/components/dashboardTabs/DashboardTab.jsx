@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { shareAPI, walletAPI, referralAPI } from "../../api/auth.api.js";
+import { formatMoney, LEDGER_CURRENCY } from "../../utils/money";
 
 export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
   const { user: authUser, refreshUser } = useAuth();
@@ -50,6 +51,12 @@ export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
     tier: currentUser?.role === "admin" ? "Gold Investor" : "Investor",
   };
 
+  // Every money figure here comes from an API that states its own currency, so
+  // each is formatted with that rather than a shared hardcoded symbol. Share
+  // prices follow GET /shares; balances and earnings follow the ledger.
+  const shareCurrency = shareInfo?.currency ?? LEDGER_CURRENCY;
+  const ledgerCurrency = wallet?.currency ?? referral?.currency ?? LEDGER_CURRENCY;
+
   // Dynamic statistics bound to API data
   const stats = [
     {
@@ -61,21 +68,21 @@ export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
     },
     {
       label: "Total Invested",
-      value: `₦${(currentUser?.totalInvested ?? 0).toLocaleString()}`,
+      value: formatMoney(currentUser?.totalInvested ?? 0, ledgerCurrency),
       change: "Lifetime Total",
       icon: TrendingUp,
       color: "green",
     },
     {
       label: "Wallet Balance",
-      value: `₦${(wallet?.balance ?? 0).toLocaleString()}`,
+      value: formatMoney(wallet?.balance ?? 0, ledgerCurrency),
       change: "Available Cash",
       icon: Wallet,
       color: "purple",
     },
     {
       label: "Referral Earnings",
-      value: `₦${(referral?.totalReferralEarnings ?? 0).toLocaleString()}`,
+      value: formatMoney(referral?.totalReferralEarnings ?? 0, ledgerCurrency),
       change: "Bonus Earned",
       icon: Users,
       color: "orange",
@@ -223,7 +230,7 @@ export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
                   darkMode ? "text-white" : "text-gray-900"
                 } mt-1`}
               >
-                ₦{(shareInfo.pricePerShare ?? 0).toLocaleString()}
+                {formatMoney(shareInfo.pricePerShare ?? 0, shareCurrency)}
               </p>
             </div>
             <div
@@ -283,7 +290,7 @@ export const DashboardTab = ({ darkMode, user: propUser, onBuyShares }) => {
                   darkMode ? "text-white" : "text-gray-900"
                 } mt-1`}
               >
-                ₦{(shareInfo.totalValue ?? 0).toLocaleString()}
+                {formatMoney(shareInfo.totalValue ?? 0, shareCurrency)}
               </p>
             </div>
           </div>

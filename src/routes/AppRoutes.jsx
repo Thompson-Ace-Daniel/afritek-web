@@ -11,6 +11,8 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import VerifyEmail from "../pages/auth/VerifyEmail";
 import Dashboard from "../pages/dashboard/Dashboard";
 import ChangePassword from "../pages/profile/ChangePassword";
+import PaymentCallback from "../pages/payment/PaymentCallback";
+import PaymentCancelled from "../pages/payment/PaymentCancelled";
 import NotFound from "../NotFound.jsx";
 import { ROUTES } from "../utils/constants";
 import NullLayout from "@/layouts/NullLayout";
@@ -49,6 +51,10 @@ export default function AppRoutes() {
         }
       >
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+        {/* Gateway return targets. Protected because verification is done as the
+            buyer — the API rejects a reference that is not the caller's. */}
+        <Route path={ROUTES.PAYMENT_CALLBACK} element={<PaymentCallback />} />
+        <Route path={ROUTES.PAYMENT_CANCEL} element={<PaymentCancelled />} />
       </Route>
 
       <Route

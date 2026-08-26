@@ -1,0 +1,76 @@
+# Apache config for the built SPA on cPanel shared hosting.
+#
+# Lives in public/ so Vite copies it to the root of dist/ on every build —
+# the deployed copy must sit next to index.html in public_html.
+#
+# If the site returns a 500 after upload, the host is refusing a directive:
+# remove the `Options -Indexes` block first, then the mod_headers block.
+# Only the mod_rewrite block is actually required by the app.
+
+# ─────────── SPA routing ───────────
+# React Router owns /dashboard, /verify-email, /payment/callback etc. Apache
+# must hand those to index.html instead of returning its own 404.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Never touch AutoSSL / Let's Encrypt validation
+  RewriteRule ^\.well-known/ - [L]
+
+  # Real files and folders (assets, logos, the mp4) are served as-is
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Everything else is a React route. The query string carries over
+  # automatically (no `?` in the substitution), which /verify-email?oobCode=
+  # and /payment/callback?reference= depend on.
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# ─────────── MIME types ───────────
+<IfModule mod_mime.c>
+  AddType application/javascript  js mjs
+  AddType text/css                css
+  AddType image/svg+xml           svg
+  AddType video/mp4               mp4
+  AddType application/json        json
+  AddType font/woff2              woff2
+</IfModule>
+
+# ─────────── Compression ───────────
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ─────────── Caching ───────────
+# Vite fingerprints asset filenames, so they can cache for a year.
+# index.html must NOT cache, or visitors keep an old bundle after a redeploy.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/css              "access plus 1 year"
+  ExpiresByType video/mp4             "access plus 1 year"
+  ExpiresByType image/jpeg            "access plus 1 year"
+  ExpiresByType image/png             "access plus 1 year"
+  ExpiresByType image/svg+xml         "access plus 1 year"
+  ExpiresByType text/html             "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2|jpe?g|png|svg|mp4)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# ─────────── Misc ───────────
+ErrorDocument 404 /index.html
+
+<IfModule mod_autoindex.c>
+  Options -Indexes
+</IfModule>

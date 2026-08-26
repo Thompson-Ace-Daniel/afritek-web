@@ -12,10 +12,19 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { withdrawalAPI } from "../../api/auth.api.js";
+import { formatMoney, LEDGER_CURRENCY } from "../../utils/money";
+import { WITHDRAWAL } from "../../utils/constants";
 import { toast } from "react-hot-toast";
 
 export const WithdrawalsTab = ({ darkMode, user }) => {
   const isAdmin = user?.role === "admin";
+
+  // Withdrawals are denominated in USD because the balance they are paid from is:
+  // referral commissions are a percentage of a USD purchase total. Each
+  // withdrawal doc carries its own `currency`, so history rows render what the
+  // API says rather than the ₦ that used to be hardcoded here.
+  const minAmount = WITHDRAWAL.MIN_USD;
+  const minLabel = formatMoney(minAmount, LEDGER_CURRENCY);
 
   // State Management
   const [withdrawals, setWithdrawals] = useState([]);
@@ -61,8 +70,18 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
   // Handle Withdrawal Request
   const handleRequest = async (e) => {
     e.preventDefault();
-    if (!form.amount || Number(form.amount) <= 0) {
+
+    const amount = Number(form.amount);
+
+    if (!form.amount || !Number.isFinite(amount) || amount <= 0) {
       toast.error("Please enter a valid amount");
+      return;
+    }
+
+    // Checked here only to save a round trip — the API enforces the same floor
+    // and its answer is the one that counts.
+    if (amount < minAmount) {
+      toast.error(`Minimum withdrawal amount is ${minLabel}`);
       return;
     }
 
@@ -70,7 +89,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
     try {
       const { data } = await withdrawalAPI.request({
         ...form,
-        amount: Number(form.amount),
+        amount,
       });
 
       toast.success(data.message || "Withdrawal request submitted!");
@@ -166,15 +185,20 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                   darkMode ? "text-zinc-300" : "text-gray-700"
                 } block mb-1.5`}
               >
-                Amount (₦) <span className="text-amber-500">*</span>
+                Amount ({LEDGER_CURRENCY}){" "}
+                <span className="text-amber-500">*</span>
               </label>
               <input
                 type="number"
-                min="1000"
+                min={minAmount}
+                // Commissions are fractional USD, so a $12.50 balance has to be
+                // withdrawable. The default step of 1 made the browser reject
+                // any amount with cents in it.
+                step="0.01"
                 required
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                placeholder="Enter amount (min ₦1,000)"
+                placeholder={`Enter amount (min ${minLabel})`}
                 className={`w-full ${
                   darkMode
                     ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
@@ -284,6 +308,22 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
               </div>
             </div>
 
+            {/* The amount above is USD, but the destination is a Nigerian bank
+                account, so someone has to convert. That happens on the payout
+                leg, at the rate the transfer settles at — which is not knowable
+                here. Saying so beats implying the account will be credited with
+                the same figure the user just typed. */}
+            <p
+              className={`text-[10px] sm:text-xs ${
+                darkMode ? "text-zinc-500" : "text-gray-500"
+              }`}
+            >
+              Withdrawals are requested in {LEDGER_CURRENCY}, the currency your
+              wallet balance is held in. Payouts to a Nigerian bank account are
+              converted to Naira at the rate on the day the transfer is
+              processed.
+            </p>
+
             <button
               type="submit"
               disabled={submitting}
@@ -345,7 +385,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                           darkMode ? "text-white" : "text-gray-900"
                         } text-sm sm:text-base`}
                       >
-                        ₦{(w.amount || 0).toLocaleString()}
+                        {formatMoney(w.amount, w.currency)}
                       </span>
                       <span
                         className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold capitalize flex items-center gap-1 ${
@@ -372,6 +412,23 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                         {w.status}
                       </span>
                     </div>
+
+                    {/* Only worth the line when a fee was actually charged:
+                        `amount` is what was debited from the balance, so without
+                        this the user has no way to see what they will receive. */}
+                    {Number(w.fee) > 0 && (
+                      <p
+                        className={`text-xs mb-1 ${
+                          darkMode ? "text-zinc-400" : "text-gray-500"
+                        }`}
+                      >
+                        Fee {formatMoney(w.fee, w.currency, { cents: true })} · You
+                        receive{" "}
+                        <span className={darkMode ? "text-zinc-200" : "text-gray-700"}>
+                          {formatMoney(w.netAmount, w.currency, { cents: true })}
+                        </span>
+                      </p>
+                    )}
 
                     <p
                       className={`text-xs ${
@@ -463,12 +520,25 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                             darkMode ? "text-white" : "text-gray-900"
                           }`}
                         >
-                          ₦{(w.amount || 0).toLocaleString()}
+                          {formatMoney(w.amount, w.currency)}
                         </p>
                         <span className="text-[10px] sm:text-xs text-amber-500 font-medium bg-amber-500/10 px-2 py-0.5 rounded">
                           Pending
                         </span>
                       </div>
+
+                      {/* The figure above is what leaves the user's balance; this
+                          is what the admin actually has to transfer. */}
+                      {Number(w.fee) > 0 && (
+                        <p
+                          className={`text-xs mt-0.5 ${
+                            darkMode ? "text-zinc-400" : "text-gray-500"
+                          }`}
+                        >
+                          Pay out {formatMoney(w.netAmount, w.currency, { cents: true })}{" "}
+                          after {formatMoney(w.fee, w.currency, { cents: true })} fee
+                        </p>
+                      )}
                       <p
                         className={`text-sm mt-1 ${
                           darkMode ? "text-zinc-300" : "text-gray-700"

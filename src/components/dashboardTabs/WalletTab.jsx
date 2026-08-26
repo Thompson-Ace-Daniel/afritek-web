@@ -6,22 +6,17 @@ import {
   Gift,
   DollarSign,
   TrendingUp,
-  Upload,
   RefreshCw,
   Loader2,
   ArrowDownRight,
 } from "lucide-react";
 import { walletAPI } from "../../api/auth.api.js";
 import { toast } from "react-hot-toast";
+import { formatMoney, LEDGER_CURRENCY } from "../../utils/money";
 
 export const WalletTab = ({ darkMode }) => {
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [depositing, setDepositing] = useState(false);
-
-  // Form State
-  const [depositAmount, setDepositAmount] = useState("");
-  const [depositDescription, setDepositDescription] = useState("");
 
   // Fetch Wallet Data from API
   const fetchWallet = useCallback(async () => {
@@ -30,7 +25,9 @@ export const WalletTab = ({ darkMode }) => {
       const { data } = await walletAPI.get();
       setWallet(data.data);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to load wallet info");
+      toast.error(
+        err.response?.data?.message || err.message || "Failed to load wallet info",
+      );
     } finally {
       setLoading(false);
     }
@@ -40,53 +37,39 @@ export const WalletTab = ({ darkMode }) => {
     fetchWallet();
   }, [fetchWallet]);
 
-  // Handle API Deposit
-  const handleDeposit = async (e) => {
-    e.preventDefault();
-    if (!depositAmount || Number(depositAmount) <= 0) {
-      toast.error("Please enter a valid deposit amount");
-      return;
-    }
+  // There is deliberately no self-service deposit here. Balance is earned from
+  // referral commissions on gateway-verified share purchases; the old
+  // POST /wallet/deposit let any user credit themselves for free and is now an
+  // admin-only endpoint (POST /wallet/credit).
 
-    setDepositing(true);
-    try {
-      const { data } = await walletAPI.deposit({
-        amount: Number(depositAmount),
-        description: depositDescription,
-      });
-
-      toast.success(data.message || "Deposit successful!");
-      setDepositAmount("");
-      fetchWallet();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Deposit failed");
-    } finally {
-      setDepositing(false);
-    }
-  };
+  // The API states the currency its figures are in (GET /wallet), so the tab
+  // renders that rather than a hardcoded symbol — these are USD since the
+  // share reprice, and were silently mislabelled as Naira before.
+  const currency = wallet?.currency ?? LEDGER_CURRENCY;
+  const money = (value) => formatMoney(value, currency);
 
   const walletStats = [
     {
       label: "Available Balance",
-      value: `₦${(wallet?.balance ?? 0).toLocaleString()}`,
+      value: money(wallet?.balance ?? 0),
       icon: Wallet,
       color: "amber",
     },
     {
       label: "Total Referral Earnings",
-      value: `₦${(wallet?.totalReferralEarnings ?? 0).toLocaleString()}`,
+      value: money(wallet?.totalReferralEarnings ?? 0),
       icon: Gift,
       color: "green",
     },
     {
       label: "Total Invested",
-      value: `₦${(wallet?.totalInvested ?? 0).toLocaleString()}`,
+      value: money(wallet?.totalInvested ?? 0),
       icon: TrendingUp,
       color: "purple",
     },
     {
       label: "Total Returns",
-      value: `₦${(wallet?.totalReturns ?? 0).toLocaleString()}`,
+      value: money(wallet?.totalReturns ?? 0),
       icon: DollarSign,
       color: "emerald",
     },
@@ -182,85 +165,6 @@ export const WalletTab = ({ darkMode }) => {
 
       {/* Main Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Deposit Form
-        <div
-          className={`lg:col-span-1 ${
-            darkMode
-              ? "bg-zinc-900/50 border-zinc-800"
-              : "bg-white border-gray-200"
-          } border rounded-2xl p-4 sm:p-6 flex flex-col justify-between`}
-        >
-          <form onSubmit={handleDeposit} className="space-y-3 sm:space-y-4">
-            <h3
-              className={`text-base sm:text-lg font-bold ${
-                darkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Deposit
-            </h3>
-
-            <div>
-              <label
-                className={`text-sm font-medium ${
-                  darkMode ? "text-zinc-300" : "text-gray-700"
-                } block mb-1.5`}
-              >
-                Amount (₦)
-              </label>
-              <input
-                type="number"
-                min="1"
-                required
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                placeholder="Enter amount"
-                className={`w-full ${
-                  darkMode
-                    ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
-                    : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
-              />
-            </div>
-
-            <div>
-              <label
-                className={`text-sm font-medium ${
-                  darkMode ? "text-zinc-300" : "text-gray-700"
-                } block mb-1.5`}
-              >
-                Description
-              </label>
-              <input
-                type="text"
-                value={depositDescription}
-                onChange={(e) => setDepositDescription(e.target.value)}
-                placeholder="Enter description"
-                className={`w-full ${
-                  darkMode
-                    ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
-                    : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
-                } border rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-sm sm:text-base`}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={depositing}
-              className="w-full py-2.5 sm:py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
-            >
-              {depositing ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4" /> Deposit
-                </>
-              )}
-            </button>
-          </form>
-        </div> */}
 
         {/* Recent Commissions & Activity Table */}
         <div
@@ -320,14 +224,14 @@ export const WalletTab = ({ darkMode }) => {
                           L{c.level}
                         </td>
                         <td className="py-2 sm:py-3 px-2 text-green-500 font-semibold">
-                          +₦{c.amount.toLocaleString()}
+                          +{money(c.amount)}
                         </td>
                         <td
                           className={`hidden sm:table-cell py-2 sm:py-3 px-2 ${
                             darkMode ? "text-zinc-400" : "text-gray-600"
                           }`}
                         >
-                          ₦{c.baseAmount.toLocaleString()}
+                          {money(c.baseAmount)}
                         </td>
                         <td
                           className={`hidden sm:table-cell py-2 sm:py-3 px-2 ${
