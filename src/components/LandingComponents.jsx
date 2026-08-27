@@ -150,8 +150,12 @@ export const faqs = [
   },
   {
     question: "What is the capital requirement to start investing?",
+    // No Naira equivalent quoted here on purpose. The old copy said "$100
+    // (approximately ₦100,000)", implying a ₦1,000/$1 rate that no longer holds;
+    // an unpinned rate baked into a static string goes stale silently. Naira
+    // payers see the real figure at checkout, from the rate the server pins.
     answer:
-      "To ensure absolute accessibility, our seed round starts at just $100 (approximately ₦100,000). Your allocation is immediately locked and verified via certified financial custodians.",
+      "To ensure absolute accessibility, our seed round starts at just $100. Your allocation is immediately locked and verified via certified financial custodians.",
   },
 ];
 

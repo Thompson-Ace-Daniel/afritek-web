@@ -12,7 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { withdrawalAPI } from "../../api/auth.api.js";
-import { formatMoney, LEDGER_CURRENCY } from "../../utils/money";
+import { formatUsd, LEDGER_CURRENCY } from "../../utils/money";
 import { WITHDRAWAL } from "../../utils/constants";
 import { toast } from "react-hot-toast";
 
@@ -20,11 +20,12 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
   const isAdmin = user?.role === "admin";
 
   // Withdrawals are denominated in USD because the balance they are paid from is:
-  // referral commissions are a percentage of a USD purchase total. Each
-  // withdrawal doc carries its own `currency`, so history rows render what the
-  // API says rather than the ₦ that used to be hardcoded here.
+  // referral commissions are a percentage of a USD purchase total, and the API
+  // pins WITHDRAWAL.CURRENCY to the literal 'USD'. History rows are formatted as
+  // USD rather than from each doc's own `currency`, which is 'NGN' on rows
+  // written before the reprice and would render a $40 payout as ₦40.
   const minAmount = WITHDRAWAL.MIN_USD;
-  const minLabel = formatMoney(minAmount, LEDGER_CURRENCY);
+  const minLabel = formatUsd(minAmount);
 
   // State Management
   const [withdrawals, setWithdrawals] = useState([]);
@@ -385,7 +386,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                           darkMode ? "text-white" : "text-gray-900"
                         } text-sm sm:text-base`}
                       >
-                        {formatMoney(w.amount, w.currency)}
+                        {formatUsd(w.amount)}
                       </span>
                       <span
                         className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold capitalize flex items-center gap-1 ${
@@ -422,10 +423,10 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                           darkMode ? "text-zinc-400" : "text-gray-500"
                         }`}
                       >
-                        Fee {formatMoney(w.fee, w.currency, { cents: true })} · You
+                        Fee {formatUsd(w.fee, { cents: true })} · You
                         receive{" "}
                         <span className={darkMode ? "text-zinc-200" : "text-gray-700"}>
-                          {formatMoney(w.netAmount, w.currency, { cents: true })}
+                          {formatUsd(w.netAmount, { cents: true })}
                         </span>
                       </p>
                     )}
@@ -520,7 +521,7 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                             darkMode ? "text-white" : "text-gray-900"
                           }`}
                         >
-                          {formatMoney(w.amount, w.currency)}
+                          {formatUsd(w.amount)}
                         </p>
                         <span className="text-[10px] sm:text-xs text-amber-500 font-medium bg-amber-500/10 px-2 py-0.5 rounded">
                           Pending
@@ -535,8 +536,8 @@ export const WithdrawalsTab = ({ darkMode, user }) => {
                             darkMode ? "text-zinc-400" : "text-gray-500"
                           }`}
                         >
-                          Pay out {formatMoney(w.netAmount, w.currency, { cents: true })}{" "}
-                          after {formatMoney(w.fee, w.currency, { cents: true })} fee
+                          Pay out {formatUsd(w.netAmount, { cents: true })}{" "}
+                          after {formatUsd(w.fee, { cents: true })} fee
                         </p>
                       )}
                       <p

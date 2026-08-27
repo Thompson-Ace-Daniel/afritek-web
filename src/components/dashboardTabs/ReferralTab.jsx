@@ -14,7 +14,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { referralAPI } from "../../api/auth.api.js";
-import { formatMoney, LEDGER_CURRENCY } from "../../utils/money";
+import { formatUsd } from "../../utils/money";
 import { toast } from "react-hot-toast";
 
 export const ReferralTab = ({ darkMode }) => {
@@ -81,10 +81,9 @@ export const ReferralTab = ({ darkMode }) => {
   };
 
   // Commissions are a percentage of a USD purchase total, so earnings are USD.
-  // GET /referrals/stats states the currency; this renders what it says rather
-  // than the ₦ that used to be hardcoded here.
-  const currency = stats?.currency ?? LEDGER_CURRENCY;
-  const money = (value) => formatMoney(value, currency);
+  // Rendered as USD outright: GET /referrals/stats stamps its `currency` from the
+  // API's CURRENCY env var, so a stale NGN there relabelled these as Naira.
+  const money = (value) => formatUsd(value);
 
   const statCards = [
     {

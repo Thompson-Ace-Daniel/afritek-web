@@ -21,7 +21,7 @@ import {
   clearPendingPayment,
   readPendingPayments,
 } from "../../utils/pendingPayment";
-import { formatMoney, LEDGER_CURRENCY, describeCharge } from "../../utils/money";
+import { formatUsd, describeCharge } from "../../utils/money";
 
 /** "3 hours ago" — enough to tell a stale attempt from the one just made. */
 const timeAgo = (savedAt) => {
@@ -102,10 +102,11 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
     setQuantity((prev) => Math.max(1, prev + delta));
   };
 
-  // Shares are priced in whatever GET /shares reports — currently USD. Paystack
-  // then bills the Naira equivalent, which is why the charge notice below exists.
-  const currency = shareInfo?.currency ?? LEDGER_CURRENCY;
-  const money = (value) => formatMoney(value, currency);
+  // Shares are priced in USD (`SHARE_PRICE_USD` server-side), so the quote is
+  // rendered as USD rather than from GET /shares' `currency` — that field echoes
+  // the API's CURRENCY env var and mislabelled the quote as Naira. Paystack then
+  // bills the Naira equivalent, which is what the charge notice below explains.
+  const money = (value) => formatUsd(value);
 
   // Initiate purchase request via API
   const handleBuy = async () => {
@@ -565,8 +566,11 @@ export const BuySharesModal = ({ isOpen, onClose, darkMode, onSuccess }) => {
               {/* Paystack cannot bill USD, so it collects the Naira equivalent at
                   a rate the server resolves when the payment is initiated. The
                   exact figure is therefore not knowable until then — this says so
-                  rather than showing a converted number the gateway may not match. */}
-              {currency !== "NGN" && paymentGateway === "paystack" && (
+                  rather than showing a converted number the gateway may not match.
+                  Gated on the gateway alone: the order is always USD-priced, so
+                  whenever Paystack is the selected gateway there is a conversion
+                  worth warning about. */}
+              {paymentGateway === "paystack" && (
                 <p
                   className={`pt-2 text-[10px] sm:text-xs ${
                     darkMode ? "text-zinc-500" : "text-gray-500"

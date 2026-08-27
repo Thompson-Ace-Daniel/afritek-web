@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { walletAPI } from "../../api/auth.api.js";
 import { toast } from "react-hot-toast";
-import { formatMoney, LEDGER_CURRENCY } from "../../utils/money";
+import { formatUsd } from "../../utils/money";
 
 export const WalletTab = ({ darkMode }) => {
   const [wallet, setWallet] = useState(null);
@@ -42,11 +42,11 @@ export const WalletTab = ({ darkMode }) => {
   // POST /wallet/deposit let any user credit themselves for free and is now an
   // admin-only endpoint (POST /wallet/credit).
 
-  // The API states the currency its figures are in (GET /wallet), so the tab
-  // renders that rather than a hardcoded symbol — these are USD since the
-  // share reprice, and were silently mislabelled as Naira before.
-  const currency = wallet?.currency ?? LEDGER_CURRENCY;
-  const money = (value) => formatMoney(value, currency);
+  // Balances, commissions and returns are all ledger figures, and the ledger is
+  // USD since the share reprice. Formatted as USD outright rather than from the
+  // response's `currency`, which reports the API's CURRENCY env var and rendered
+  // these as Naira when that was left set to NGN.
+  const money = (value) => formatUsd(value);
 
   const walletStats = [
     {

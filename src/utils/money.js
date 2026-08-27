@@ -6,14 +6,26 @@
  * those kept rendering `₦20` for a $20 share — the display contradicted the
  * amount the buyer was about to be charged.
  *
- * So nothing here assumes a currency. Callers pass the code the API gave them,
- * and the fallback is the ledger currency rather than a symbol someone typed.
+ * Two formatters, because there are two kinds of money on screen and only one of
+ * them can vary:
+ *
+ * - `formatUsd` — the **ledger**. Share price, order totals, wallet balance,
+ *   referral earnings, withdrawal amounts. Always USD, never taken from the
+ *   response body. See the note on `formatMoney`'s `currency` argument for why.
+ * - `formatMoney` — the **charge leg** only. Paystack cannot bill USD, so it
+ *   collects an NGN equivalent that the server pins onto the payment
+ *   (`chargeAmount`/`chargeCurrency`/`fxRate`). That figure genuinely is Naira
+ *   and must render as such.
  */
 
 /**
  * The currency the API denominates the ledger in — purchases, wallet balances,
- * referral commissions and withdrawals. Used only when a response omits an
- * explicit `currency`, which should be rare.
+ * referral commissions and withdrawals.
+ *
+ * This is a structural fact about the backend, not a preference: share price is
+ * resolved from `SHARE_PRICE_USD`, `WITHDRAWAL.CURRENCY` is the literal 'USD',
+ * and payment docs are written with `currency: 'USD'`. So ledger figures are
+ * always USD, and `formatUsd` below is what renders them.
  */
 export const LEDGER_CURRENCY = "USD";
 
@@ -30,8 +42,15 @@ export const currencySymbol = (currency) =>
 /**
  * Format an amount for display.
  *
+ * **Reserved for the charge leg.** Pass a `currency` only when the figure really
+ * is denominated in that currency — i.e. `chargeAmount` + `chargeCurrency` off a
+ * payment doc. Do not pass a ledger response's `currency` field: those responses
+ * stamp their code from the API's `CURRENCY` env var, which is deployment
+ * configuration rather than a property of the amount, and a stale `CURRENCY=NGN`
+ * there made a $20 share render as `₦20`. Ledger figures go through `formatUsd`.
+ *
  * @param {number|string|null|undefined} amount
- * @param {string} [currency]  ISO code from the API; defaults to the ledger currency
+ * @param {string} [currency]  ISO code the amount is actually denominated in
  * @param {object} [options]
  * @param {string} [options.fallback="—"]  shown when the amount is absent
  * @param {boolean} [options.cents]  force 2 decimal places (totals, fees)
@@ -66,6 +85,24 @@ export const formatMoney = (amount, currency, options = {}) => {
 };
 
 /**
+ * Format a ledger amount — share prices, order totals, wallet balances, referral
+ * earnings, withdrawal amounts and fees.
+ *
+ * Hardwired to USD on purpose. Every one of those figures is USD server-side, so
+ * there is nothing to negotiate with the response body, and taking the code from
+ * the response is what caused the symbol to flip: the first paint had no data and
+ * fell back to USD (`$20`), then the fetch resolved with `currency: "NGN"` and
+ * the same figure re-rendered as `₦20` — the amount unchanged, the meaning off by
+ * three orders of magnitude.
+ *
+ * @param {number|string|null|undefined} amount
+ * @param {object} [options]  same options as formatMoney
+ * @returns {string}
+ */
+export const formatUsd = (amount, options = {}) =>
+  formatMoney(amount, LEDGER_CURRENCY, options);
+
+/**
  * The one-line explanation a Naira payer needs before committing: what they will
  * actually be debited, and the rate behind it.
  *
@@ -81,7 +118,7 @@ export const describeCharge = ({ amountUsd, chargeAmount, chargeCurrency, fxRate
   const parts = [
     `You will be charged ${formatMoney(chargeAmount, code)}`,
     amountUsd !== undefined && amountUsd !== null
-      ? `for ${formatMoney(amountUsd, LEDGER_CURRENCY)}`
+      ? `for ${formatUsd(amountUsd)}`
       : null,
   ].filter(Boolean);
 

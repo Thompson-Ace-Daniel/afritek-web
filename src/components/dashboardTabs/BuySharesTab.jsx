@@ -14,7 +14,7 @@ import { shareAPI } from "../../api/auth.api.js";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../../hooks/useAuth";
 import { savePendingPayment } from "../../utils/pendingPayment";
-import { formatMoney, LEDGER_CURRENCY, describeCharge } from "../../utils/money";
+import { formatUsd, describeCharge } from "../../utils/money";
 
 export const BuySharesTab = ({ darkMode }) => {
   const { user } = useAuth();
@@ -58,11 +58,12 @@ export const BuySharesTab = ({ darkMode }) => {
   const exceedsSupply = remainingShares !== null && quantity > remainingShares;
   const canBuy = !buying && sharePrice !== null && quantity >= 1 && !exceedsSupply;
 
-  // Shares are priced in whatever GET /shares says — currently USD. Reading the
-  // currency off the response rather than hardcoding a symbol is what keeps this
-  // screen from quoting "₦20" for a $20 share after a repricing.
-  const currency = shareInfo?.currency ?? LEDGER_CURRENCY;
-  const money = (value) => formatMoney(value, currency);
+  // Shares are priced in USD (`SHARE_PRICE_USD` server-side), so the quote is
+  // rendered as USD. Not from GET /shares' `currency`: that field echoes the
+  // API's CURRENCY env var, and a stale NGN there quoted a $20 share as "₦20".
+  // The Naira the buyer is actually debited is the charge leg, shown by
+  // describeCharge below once the server has pinned the rate.
+  const money = (value) => formatUsd(value);
 
   const handleQuantityChange = (delta) => {
     setQuantity((prev) => Math.max(1, prev + delta));
@@ -419,17 +420,16 @@ export const BuySharesTab = ({ darkMode }) => {
                   can only bill Naira. The exact Naira figure depends on the rate
                   the server resolves at checkout, so it is not knowable here —
                   saying so is better than showing a converted number that the
-                  gateway might then disagree with. */}
-              {currency !== "NGN" && (
-                <p
-                  className={`pt-2 text-[10px] sm:text-xs ${
-                    darkMode ? "text-zinc-500" : "text-gray-500"
-                  }`}
-                >
-                  Paystack settles in Naira. You will be shown the exact Naira
-                  amount, at the current rate, before you confirm payment.
-                </p>
-              )}
+                  gateway might then disagree with. Unconditional because this tab
+                  has no gateway choice: it always initiates with Paystack. */}
+              <p
+                className={`pt-2 text-[10px] sm:text-xs ${
+                  darkMode ? "text-zinc-500" : "text-gray-500"
+                }`}
+              >
+                Paystack settles in Naira. You will be shown the exact Naira
+                amount, at the current rate, before you confirm payment.
+              </p>
             </div>
           </div>
 
