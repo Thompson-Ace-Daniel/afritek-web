@@ -28,6 +28,7 @@ export const ROUTES = {
   // or a paid buyer lands on the 404 page and the purchase is never verified.
   PAYMENT_CALLBACK: "/payment/callback",
   PAYMENT_CANCEL: "/payment/cancel",
+  CERTIFICATE_VERIFY: "/certificate/verify/:number",
 };
 
 /**

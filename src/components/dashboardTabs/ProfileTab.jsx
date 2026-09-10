@@ -70,23 +70,40 @@ export const ProfileTab = ({ darkMode }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
       fullName: user?.fullName || "",
       phone: user?.phone || "",
+      address: user?.address || "",
     },
   });
+
+  // Keep the form in sync when /auth/me (or login) refreshes the user object.
+  useEffect(() => {
+    reset({
+      fullName: user?.fullName || "",
+      phone: user?.phone || "",
+      address: user?.address || "",
+    });
+  }, [user?.fullName, user?.phone, user?.address, reset]);
 
   const onSubmit = async (data) => {
     setServerError(null);
     setSuccessMessage(null);
     setSubmitting(true);
     try {
-      await updateProfile({
+      const updated = await updateProfile({
         fullName: data.fullName.trim(),
         phone: data.phone?.trim() || null,
+        address: data.address?.trim() || null,
+      });
+      reset({
+        fullName: updated?.fullName || data.fullName.trim(),
+        phone: updated?.phone || "",
+        address: updated?.address || "",
       });
       setSuccessMessage("Profile updated successfully.");
       toast.success("Profile updated");
@@ -297,6 +314,38 @@ export const ProfileTab = ({ darkMode }) => {
             {errors.fullName && (
               <p className="mt-1 text-xs text-red-500">
                 {errors.fullName.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              className={`text-sm font-medium ${
+                darkMode ? "text-zinc-300" : "text-gray-700"
+              } block mb-1.5`}
+            >
+              Full Address
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Street, area, city, state, country"
+              className={`w-full ${
+                darkMode
+                  ? "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                  : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
+              } border rounded-xl px-4 py-3 text-sm sm:text-base outline-none focus:border-amber-400 transition-colors`}
+              {...register("address")}
+            />
+            <p
+              className={`mt-1 text-[11px] ${
+                darkMode ? "text-zinc-500" : "text-gray-400"
+              }`}
+            >
+              Used on your share certificate. Leave blank if you prefer not to show an address.
+            </p>
+            {errors.address && (
+              <p className="mt-1 text-xs text-red-500">
+                {errors.address.message}
               </p>
             )}
           </div>

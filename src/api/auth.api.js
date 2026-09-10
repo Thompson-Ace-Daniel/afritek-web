@@ -130,3 +130,73 @@ export const withdrawalAPI = {
     return api.patch(`/withdrawals/${id}/process`, body);
   },
 };
+
+// ====================== SHARE CERTIFICATES ======================
+export const certificateAPI = {
+  /** The holder's own certificates, newest number first. */
+  getMine() {
+    return api.get("/certificates");
+  },
+
+  /**
+   * Issue certificates for verified purchases that never got one (older buys,
+   * or issuance that failed after shares were credited).
+   */
+  backfill() {
+    return api.post("/certificates/backfill");
+  },
+
+  /** Generate or refresh the consolidated certificate for all verified holdings. */
+  consolidated() {
+    return api.post("/certificates/consolidated");
+  },
+
+  getOne(id) {
+    return api.get(`/certificates/${id}`);
+  },
+
+  /**
+   * Fetch one certificate as a PDF blob.
+   *
+   * `responseType: "blob"` is what makes this work at all — with the default
+   * JSON handling axios would hand back a mangled string. It also means an error
+   * response arrives as a Blob rather than parsed JSON, so the axios interceptor
+   * cannot read `message` out of it; `readBlobError` below recovers the real
+   * message so the user is told "This certificate does not belong to you" rather
+   * than a generic failure.
+   */
+  download(id) {
+    return api
+      .get(`/certificates/${id}/download`, { responseType: "blob" })
+      .then((res) => res.data)
+      .catch(async (err) => {
+        throw await readBlobError(err);
+      });
+  },
+
+  verifyNumber(number) {
+    return api.get(`/certificates/verify/${encodeURIComponent(number)}`);
+  },
+};
+
+/**
+ * Recover an API error message that arrived as a Blob.
+ *
+ * Errors from a `responseType: "blob"` request keep the JSON envelope the API
+ * sent, but as binary — so the message has to be read back out of it. Falls
+ * through to the original error whenever that is not possible.
+ */
+const readBlobError = async (err) => {
+  const body = err?.response?.data;
+
+  if (!(body instanceof Blob)) return err;
+
+  try {
+    const parsed = JSON.parse(await body.text());
+    if (parsed?.message) err.message = parsed.message;
+  } catch {
+    // Not JSON — leave the interceptor's generic message in place.
+  }
+
+  return err;
+};

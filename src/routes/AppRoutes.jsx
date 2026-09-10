@@ -13,6 +13,7 @@ import Dashboard from "../pages/dashboard/Dashboard";
 import ChangePassword from "../pages/profile/ChangePassword";
 import PaymentCallback from "../pages/payment/PaymentCallback";
 import PaymentCancelled from "../pages/payment/PaymentCancelled";
+import CertificateVerify from "../pages/certificate/CertificateVerify";
 import NotFound from "../NotFound.jsx";
 import { ROUTES } from "../utils/constants";
 import NullLayout from "@/layouts/NullLayout";
@@ -21,6 +22,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path={ROUTES.HOME} element={<LandingPage />} />
+      <Route path={ROUTES.CERTIFICATE_VERIFY} element={<CertificateVerify />} />
       <Route element={<AuthLayout />}>
         <Route
           path={ROUTES.LOGIN}

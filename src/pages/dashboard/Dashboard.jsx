@@ -15,6 +15,7 @@ import {
   Gift,
   ArrowUpRight,
   ArrowDownRight,
+  FileBadge2,
   Copy,
   Check,
   Users,
@@ -33,6 +34,7 @@ import {
   WalletTab,
   WithdrawalsTab,
   ReferralTab,
+  CertificateTab,
 } from "./DashboardTabs";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -52,6 +54,7 @@ export default function Dashboard() {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "wallet", label: "Wallet", icon: Wallet },
     { id: "withdrawals", label: "Withdrawals", icon: ArrowUpRight },
+    { id: "certificates", label: "Certificates", icon: FileBadge2 },
     { id: "referrals", label: "Referrals", icon: Users },
     { id: "support", label: "Support", icon: HelpCircle },
     { id: "profile", label: "Profile", icon: User },
@@ -300,6 +303,9 @@ export default function Dashboard() {
           {currentTab === "withdrawals" && (
             <WithdrawalsTab darkMode={darkMode} user={user} />
           )}
+          {currentTab === "certificates" && (
+            <CertificateTab key={`certificates-${dataVersion}`} darkMode={darkMode} user={user} />
+          )}
           {currentTab === "referrals" && (
             <ReferralTab darkMode={darkMode} user={user} />
           )}
@@ -321,7 +327,7 @@ export default function Dashboard() {
         } lg:hidden`}
       >
         <div className="flex items-center justify-around p-1.5 sm:p-2">
-          {tabs.slice(0, 4).map((tab) => {
+          {tabs.slice(0, 5).map((tab) => {
             const Icon = tab.icon;
             const isActive = currentTab === tab.id;
             return (

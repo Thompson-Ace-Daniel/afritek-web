@@ -98,4 +98,12 @@ export const updateProfileSchema = z.object({
       (val) => !val || /^\+?[1-9]\d{7,14}$/.test(val),
       'Please enter a valid phone number (E.164 format)'
     ),
+  address: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || (val.trim().length >= 5 && val.trim().length <= 250),
+      'Full address must be between 5 and 250 characters'
+    ),
 });
