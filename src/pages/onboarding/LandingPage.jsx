@@ -6,6 +6,7 @@ import {
   HeroSection,
   StatsSection,
   PressMarquee,
+  AboutSection,
   PillarsSection,
   DeviceShowcase,
   InvestmentCalculator,
@@ -184,6 +185,9 @@ export default function LandingPage() {
 
       {/* Press Marquee */}
       <PressMarquee />
+      
+      {/* About Section */}
+      <AboutSection />
 
       {/* Pillars Section */}
       <PillarsSection />

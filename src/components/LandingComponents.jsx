@@ -25,6 +25,7 @@ import {
   Gift,
   Menu,
   X,
+  YoutubeIcon,
 } from "lucide-react";
 import ReactCountUp from "react-countup";
 import CryptoAfrica from "./Common";
@@ -39,7 +40,7 @@ export const corePillars = [
     id: "growth",
     label: "Growth Strategy",
     icon: TrendingUp,
-    desc: "Exponential expansion into high-yield emerging digital markets across the African continent.",
+    desc: "Privacy-Led Ecosystem Expansion Which Position AfriTek as a privacy-first Web3 ecosystem where users retain meaningful ownership, control, and portability of their personal data and digital life.",
   },
   {
     id: "wealth",
@@ -138,6 +139,26 @@ export const devices = {
 };
 
 export const faqs = [
+  {
+    question: "What is AfriTek Technologies?",
+    answer:
+      "AfriTek Technologies is an innovative technology company focused on designing and producing blockchain-enabled smartphones tailored for Africa and emerging markets.",
+  },
+  {
+    question: "What makes AfriTek smartphones unique?",
+    answer:
+      "AfriTek smartphones feature built-in cryptocurrency wallets, decentralized identity systems, AI-powered assistants, secure encrypted communication, and blockchain-enabled applications.",
+  },
+  {
+    question: "How can I invest in AfriTek?",
+    answer:
+      "Our inclusive investment model creates an opportunity for investors to participate in the growth of a pioneering African technology company through our Equity Crowd Funding Campaign.",
+  },
+  {
+    question: "What is the blockchain smartphone market size?",
+    answer:
+      "Globally, the blockchain smartphone market capitalization in 2025 was estimated in the range from $0.9B to $2.75B depending on market definition, with strong double-digit growth projected",
+  },
   {
     question: "How does the custom hardware block security breaches?",
     answer:
@@ -599,6 +620,76 @@ export const PressMarquee = () => {
   );
 };
 
+// ==================== ABOUT SECTION ====================
+export const AboutSection = () => {
+  return (
+    <motion.section
+      className="border-b border-white/6 py-16 sm:py-20 relative overflow-hidden"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent" />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-16 relative">
+        <div className="max-w-4xl">
+          <motion.h1
+            className="max-w-3xl font-black mb-6 sm:mb-10 mt-4 sm:mt-5 text-xl sm:text-2xl md:text-3xl text-white"
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            About the Company
+          </motion.h1>
+          <motion.p
+            className="text-sm sm:text-base md:text-xl text-gray-400 w-full"
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <p>
+              AfriTek Technologies is an innovative technology company focused
+              on designing and producing blockchain-enabled smartphones tailored
+              for Africa and emerging markets. Our mission is to provide secure,
+              decentralized, AI-powered mobile devices that enable financial
+              inclusion, digital identity management, blockchain transactions,
+              and data ownership for millions of users.
+            </p>
+            <br />
+
+            <p>
+              Globally for the blockchain smartphone market capitalization, in
+              2025 was estimated in the range from $0.9B to $2.75B depending on
+              market definition., the is according to World Blockchain Phone
+              Market 2026 PW-Consulting. With strong double-digit growth
+              projected.
+            </p>
+            <br />
+
+            <p>
+              While blockchain adoption continues to grow rapidly across
+              finance, healthcare, agriculture, government, and
+              telecommunications. AfriTek seeks to bridge these industries by
+              manufacturing smartphones that integrate blockchain technology
+              directly into the operating system and hardware architecture.
+            </p>
+            <br />
+
+            <p>
+              AfriTek smartphones will feature built-in cryptocurrency wallets,
+              decentralized identity systems, AI-powered assistants, secure
+              encrypted communication, and blockchain-enabled applications.
+            </p>
+            <br />
+          </motion.p>
+        </div>
+      </div>
+    </motion.section>
+  );
+};
+
+
 // ==================== PILLARS SECTION ====================
 export const PillarsSection = () => {
   const [activePillar, setActivePillar] = useState("growth");
@@ -623,7 +714,7 @@ export const PillarsSection = () => {
         </h2>
         <p className="font-body text-zinc-400 text-sm sm:text-base lg:text-lg mt-4 font-light leading-relaxed">
           We assemble concrete digital defenses and hardware modules ensuring
-          absolute liquidity alignment and institutional capital growth.
+          absolute data sovereignty and sustainable ecosystem growth.
         </p>
       </motion.div>
 
@@ -979,13 +1070,18 @@ export const InvestmentCalculator = () => {
               EQUITY CAPITAL PORTAL
             </span>
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white">
-              Secure Your Fractional Allocation
+              Secure Your Fractional Ownership
             </h2>
           </div>
           <p className="font-body text-sm sm:text-base text-zinc-400 font-light leading-relaxed">
-            Participate instantly in our tokenized seed framework. Your capital
-            injection maps directly to asset deployment pipelines overseen by
-            accredited tier-1 financial custody partners.
+            Own a stake in Africa's pioneering blockchain smartphone company.
+            Benefit from potential long-term value appreciation as AfriTek
+            scales its smartphone, AI, blockchain, and Web3 ecosystem across
+            global markets. 
+            <br /><br />
+            Gain a position in Africa's emerging digital economy
+            while supporting innovation built around privacy, data ownership,
+            and decentralized technology.
           </p>
 
           <div className="space-y-3 bg-zinc-900/10 border border-white/[0.04] p-4 sm:p-6 rounded-2xl backdrop-blur-md">
@@ -1149,7 +1245,7 @@ export const InvestmentCTA = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            AfriTekbile Equity Crowd Funding Campaign
+            AfriTek Equity Crowd Funding Campaign
           </motion.h1>
           <motion.p
             className="text-sm sm:text-base md:text-xl text-gray-400 w-full"
@@ -1158,12 +1254,12 @@ export const InvestmentCTA = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Be part of a revolution! The AfriTekbile Blockchain Smartphone is
-            redefining the mobile industry with cutting-edge blockchain
-            security, AI-driven features, and a vision for digital
-            transformation across Africa. Our crowdfunding model allows anyone
-            to invest with a small amount and gain a stake in Africa's leading
-            smartphone innovation.
+            Join AfriTek Technologies as we redefine the mobile industry through
+            advanced blockchain security, intelligent AI capabilities, digital
+            privacy, and user-controlled data ownership. Our inclusive
+            investment model creates an opportunity for investors to participate
+            in the growth of a pioneering African technology company positioned
+            to scale across Africa and the global digital economy.
           </motion.p>
           <Link
             to="/login"
@@ -1374,15 +1470,25 @@ export const Footer = () => {
           <ul className="space-y-3 sm:space-y-3.5 font-body text-xs text-zinc-500">
             <li className="flex items-center gap-2 sm:gap-2.5">
               <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 flex-shrink-0" />
-              <span className="break-all">core@AfriTektech.com</span>
+              <span className="break-all">info@afritektech.com</span>
             </li>
             <li className="flex items-center gap-2 sm:gap-2.5">
               <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 flex-shrink-0" />
-              <span>+234 (0) 800-AfriTek</span>
+              <div className="leading-relaxed flex gap-3">
+                <p>+234 803 759 1004</p>
+                <p>+234 803 803 2123</p>
+                <p>+233 24 878 2069</p>
+              </div>
             </li>
             <li className="flex items-center gap-2 sm:gap-2.5">
               <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 flex-shrink-0" />
-              <span>Tech Enclave, Lagos, Nigeria</span>
+              <span>
+                38, SERIKI ARO, OFF AWOLOWO WAY, IKEJA, LAGOS STATE, NIGERIA
+              </span>
+            </li>
+            <li className="flex items-center gap-2 sm:gap-2.5">
+              <YoutubeIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 flex-shrink-0" />
+              <span>https://www.youtube.com/@AfriTekTechnologies</span>
             </li>
           </ul>
         </motion.div>
